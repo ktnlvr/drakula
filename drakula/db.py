@@ -6,7 +6,7 @@ class Database():
         host = os.getenv("DRAKULA_HOST") or "127.0.0.1"
         port = os.getenv("DRAKULA_PORT") or 3306
         user = os.getenv("DRAKULA_USER")
-        password = os.getenv("DARKULA_PASSWORD")
+        password = os.getenv("DRAKULA_PASSWORD")
         self.connection = connect(host=host, port=port, user=user, password=password)
 
     def single_query(self, query: str) -> dict:

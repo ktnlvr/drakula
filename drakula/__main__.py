@@ -2,6 +2,7 @@ import dotenv
 from pprint import pprint
 
 from drakula.db import Database, Airport, GameDatabaseFacade
+import pygame
 
 if __name__ == '__main__':
     dotenv.load_dotenv()

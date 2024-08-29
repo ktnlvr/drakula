@@ -1,9 +1,7 @@
 import dotenv
-from pprint import pprint
-
-from drakula.db import Database, Airport, GameDatabaseFacade
 import pygame
 
+from drakula.db import Database, GameDatabaseFacade
 from drakula.maths import angles_to_world_pos
 
 if __name__ == '__main__':
@@ -29,8 +27,6 @@ if __name__ == '__main__':
 
         for airport in airports:
             p = angles_to_world_pos(airport.latitude_deg, airport.longitude_deg)
-            print(p)
-            px = p[0] * 1280
-            py = p[1] * 644
-            pygame.draw.circle(screen, (255, 0, 0), [px, py], 10.)
+            p *= [1280, 644]
+            pygame.draw.circle(screen, (255, 0, 0), p, 5.)
         pygame.display.update()

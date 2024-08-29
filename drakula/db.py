@@ -42,7 +42,7 @@ class GameDatabaseFacade:
         continent = continent or "EU"
         if continent not in self.continents:
             raise Exception(f"Continent `{continent}` does not exist")
-        query = f"select * from airport where airport.continent = '{continent}' limit {amount}"
+        query = f"select * from airport where airport.continent = '{continent}' order by RAND() limit {amount}"
         return list_map(self.db.multi_query(query), Airport)
 
     def update_caches(self):

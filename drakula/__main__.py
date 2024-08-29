@@ -10,7 +10,10 @@ if __name__ == '__main__':
     dotenv.load_dotenv()
     db = Database()
     game = GameDatabaseFacade(db)
-    airports = game.fetch_random_airports(5, "OC")
+
+    airports = []
+    for continent in game.continents:
+        airports.extend(game.fetch_random_airports(10, continent))
 
     pygame.init()
     screen = pygame.display.set_mode((1280, 644))
@@ -29,5 +32,5 @@ if __name__ == '__main__':
             print(p)
             px = p[0] * 1280
             py = p[1] * 644
-            pygame.draw.circle(screen, (255, 0, 0), [px, py], 2.)
+            pygame.draw.circle(screen, (255, 0, 0), [px, py], 10.)
         pygame.display.update()

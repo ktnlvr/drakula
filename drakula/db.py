@@ -1,6 +1,8 @@
 import os
+from ssl import TLSVersion
+
 from mysql.connector import connect
-from typing import TypeVar, Callable, Optional
+from typing import TypeVar, Callable, Optional, Union
 
 from drakula.utils import list_map, kwarg_id
 from drakula.models import Airport
@@ -16,13 +18,13 @@ class Database:
 
         self.connection = connect(host=host, port=port, user=user, password=password)
 
-    def single_query(self, query: str, model: Callable[[...], T] = dict) -> Optional[dict | T]:
+    def single_query(self, query: str, model: Callable[[...], T] = dict) -> Optional[Union[list, T]]:
         cursor = self.connection.cursor(dictionary=True)
         cursor.execute(query)
         if ret := cursor.fetchone():
             return model(ret)
 
-    def multi_query(self, query: str, model: Callable[[...], T] = dict) -> list[dict | T]:
+    def multi_query(self, query: str, model: Callable[[...], T] = dict) -> list[Union[list, T]]:
         cursor = self.connection.cursor(dictionary=True)
         cursor.execute(query)
         return list_map(cursor.fetchall(), model)
@@ -35,7 +37,7 @@ class GameDatabaseFacade:
         self.continents = list()
         self.update_caches()
 
-    def fetch_random_airports(self, amount: int | None = None, continent: str | None = None):
+    def fetch_random_airports(self, amount: Optional[int] = None, continent: Optional[str] = None):
         amount = amount or 1
         continent = continent or "EU"
         if continent not in self.continents:

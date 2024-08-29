@@ -1,4 +1,4 @@
-from collections.abc import Callable
+from collections.abc import Callable, Generator
 from typing import TypeVar
 
 T = TypeVar('T')
@@ -11,3 +11,13 @@ def kwarg_id(argname: str):
     def func(*args, **kwargs):
         return kwargs[argname]
     return func
+
+def flatten(ls: list[list[T]]) -> Generator[T, None, None]:
+    for sublist in ls:
+        yield from sublist
+
+def pairs(ls):
+    length = len(ls)
+    for i in range(length - 1):
+        yield ls[i], ls[i + 1]
+    yield ls[-1], ls[0]

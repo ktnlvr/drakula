@@ -10,6 +10,11 @@ from drakula.maths import angles_to_world_pos, geodesic_to_3d_pos, delaunay_tria
 
 GRAPH_PRUNE_LEN = 10
 
+def should_wrap_coordinate(a: float, b: float, span: float) -> bool:
+    signed_distance = b - a
+    wrapped_signed_distance = span - signed_distance
+    return abs(wrapped_signed_distance) < abs(signed_distance)
+
 def main(*args, **kwargs):
     dotenv.load_dotenv()
     db = Database()
@@ -63,7 +68,19 @@ def main(*args, **kwargs):
             for j in js:
                 connection = airports[j]
                 b = screen_size * angles_to_world_pos(connection.latitude_deg, connection.longitude_deg)
-                pygame.draw.line(screen, (0, 255, 0), a, b, 1)
+
+                # because of the signed distance, the calculations are different for case b[0] > a[0]
+                # TODO: figure out the case for b[0] > a[0]
+                # until then this logic allows deduping the lines from A->B and B->A
+                # AND avoiding handling wrapping around the right edge of the map
+                if b[0] < a[0]:
+                    continue
+
+                if should_wrap_coordinate(a[0], b[0], screen_size[0]):
+                    pygame.draw.line(screen, (255, 200, 0), (a[0], a[1]), (-screen_size[0] + b[0], b[1]), 1)
+                    pygame.draw.line(screen, (255, 200, 0), (b[0], b[1]), (screen_size[0] + a[0], a[1]), 1)
+                else:
+                    pygame.draw.line(screen, (0, 255, 0), a, b, 1)
 
         for airport in airports:
             p = angles_to_world_pos(airport.latitude_deg, airport.longitude_deg)

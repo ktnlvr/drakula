@@ -27,19 +27,24 @@ if __name__ == '__main__':
     pygame.display.set_icon(icon)
     mapx = 0
     mapy = 0
+    offset_x = 0
     running = True
     while running:
         screen.fill((255, 255, 255))
-        screen.blit(map,(mapx,mapy))
-        screen.blit(map,(mapx + 1275, mapy))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
-                    mapx += 20
+                    mapx += 100
                 if event.key == pygame.K_RIGHT:
-                    mapx -= 20
+                    mapx -= 100
+        offset_x = mapx % 1280
+        screen.blit(map, (offset_x, mapy))
+        if offset_x > 0:
+            screen.blit(map, (offset_x - 1280,mapy))
+        if offset_x < 0:
+            screen.blit(map, (offset_x + 1280, mapy))
         for simplex in hull:
             p = np.array([screen_size * angles_to_world_pos(airports[i].latitude_deg, airports[i].longitude_deg) for i in simplex])
             p[:,0] += mapx

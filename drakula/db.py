@@ -37,7 +37,7 @@ class GameDatabaseFacade:
         self.continents = list()
         self.update_caches()
 
-    def fetch_random_airports(self, amount: Optional[int] = None, continent: Optional[str] = None):
+    def fetch_random_airports(self, amount: Optional[int] = None, continent: Optional[str] = None) -> list[Airport]:
         amount = amount or 1
         continent = continent or "EU"
         if continent not in self.continents:

@@ -26,7 +26,7 @@ if __name__ == '__main__':
     ctx= moderngl.create_context()
     clock = pygame.time.Clock()
 
-    map = pygame.image.load("mapv2.png")
+    map = pygame.image.load("map.png")
 
     quad_buffer = ctx.buffer(data=array('f', [
         # position (x, y), uv coords (x, y)

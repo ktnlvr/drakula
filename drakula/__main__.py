@@ -5,6 +5,7 @@ import pygame
 import numpy as np
 
 from drakula.db import Database, GameDatabaseFacade
+from drakula.state import GameState
 from drakula.utils import pairs
 from drakula.maths import angles_to_world_pos, geodesic_to_3d_pos, delaunay_triangulate_points
 
@@ -24,29 +25,7 @@ def main(*args, **kwargs):
     for continent in game.continents:
         airports.extend(game.fetch_random_airports(4, continent))
 
-    points = np.array([geodesic_to_3d_pos(airport.latitude_deg, airport.longitude_deg, airport.elevation_ft) for airport in airports])
-    hull = delaunay_triangulate_points(points)
-
-    graph = defaultdict(list)
-    for simplex in hull:
-        for i, j in pairs(simplex):
-            def relative_distance_key(rel_to_idx: int):
-                def func(idx: int):
-                    a = points[rel_to_idx]
-                    b = points[idx]
-                    return np.dot(a - b, (a - b).T)
-                return func
-
-            graph[i] = sorted(graph[i] + [j], key=relative_distance_key(i))
-            graph[j] = sorted(graph[j] + [i], key=relative_distance_key(j))
-
-    # no airport should be able to fly to itself
-    for vert in graph:
-        assert vert not in graph[vert]
-
-    if GRAPH_PRUNE_LEN:
-        for vert in graph:
-            graph[vert] = graph[vert][:GRAPH_PRUNE_LEN]
+    state = GameState(airports)
 
     screen_size = np.array([1280, 644])
 
@@ -62,12 +41,12 @@ def main(*args, **kwargs):
             if event.type == pygame.QUIT:
                 running = False
 
-        for i, js in graph.items():
+        for i, js in state.graph.items():
             airport = airports[i]
-            a = screen_size * angles_to_world_pos(airport.latitude_deg, airport.longitude_deg)
+            a = screen_size * angles_to_world_pos(*airport.position)
             for j in js:
                 connection = airports[j]
-                b = screen_size * angles_to_world_pos(connection.latitude_deg, connection.longitude_deg)
+                b = screen_size * angles_to_world_pos(*connection.position)
 
                 # because of the signed distance, the calculations are different for case b[0] > a[0]
                 # TODO: figure out the case for b[0] > a[0]

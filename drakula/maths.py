@@ -46,13 +46,14 @@ def geodesic_to_3d_pos(lat_deg: float, lon_deg: float, alt_ft: float, flattening
     return np.array([x, y, z])
 
 def delaunay_triangulate_points(points):
-    return Delaunay(points).simplices
+    return Delaunay(points).convex_hull
 
 def are_collinear(a, b, c, tolerance: float = 0.85) -> bool:
     # calculate the Pearson's correlation coefficient
     points = np.array([a, b, c]).T
-    mean = np.mean(points, axis=1)
-    diffs = points - np.reshape(mean, (2,1))
+    norm_points = (points - np.min(points)) / (np.max(points) - np.min(points))
+    mean = np.mean(norm_points, axis=1)
+    diffs = norm_points - np.reshape(mean, (2,1))
     num = np.sum(np.prod(diffs.T, axis=1))
     den = np.sqrt(np.sum(diffs ** 2))
     r = num / den

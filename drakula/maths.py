@@ -3,7 +3,6 @@ from math import atan, cos, sin, tan
 
 from scipy.spatial import Delaunay
 
-
 # https://stackoverflow.com/questions/1369512/converting-longitude-latitude-to-x-y-on-a-map-with-calibration-points
 def angles_to_world_pos(lat: float, lon: float) -> np.ndarray:
     """
@@ -48,3 +47,13 @@ def geodesic_to_3d_pos(lat_deg: float, lon_deg: float, alt_ft: float, flattening
 
 def delaunay_triangulate_points(points):
     return Delaunay(points).simplices
+
+def are_collinear(a, b, c, tolerance: float = 0.85) -> bool:
+    # calculate the Pearson's correlation coefficient
+    points = np.array([a, b, c]).T
+    mean = np.mean(points, axis=1)
+    diffs = points - np.reshape(mean, (2,1))
+    num = np.sum(np.prod(diffs.T, axis=1))
+    den = np.sqrt(np.sum(diffs ** 2))
+    r = num / den
+    return abs(r) > tolerance

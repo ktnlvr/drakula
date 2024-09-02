@@ -17,6 +17,7 @@ if __name__ == '__main__':
 
     points = np.array([geodesic_to_3d_pos(airport.latitude_deg, airport.longitude_deg, airport.elevation_ft) for airport in airports])
     hull = points_to_hull(points)
+    # TODO: use the dimensions of the actual screen
     screen_size = np.array([1280, 644])
 
     pygame.init()
@@ -26,8 +27,6 @@ if __name__ == '__main__':
     icon = pygame.image.load("./vampire.png")
     pygame.display.set_icon(icon)
     mapx = 0
-    mapy = 0
-    offset_x = 0
     running = True
     while running:
         screen.fill((255, 255, 255))
@@ -39,23 +38,21 @@ if __name__ == '__main__':
                     mapx += 100
                 if event.key == pygame.K_RIGHT:
                     mapx -= 100
-        offset_x = mapx % 1280
-        screen.blit(map, (offset_x, mapy))
-        if offset_x > 0:
-            screen.blit(map, (offset_x - 1280,mapy))
-        if offset_x < 0:
-            screen.blit(map, (offset_x + 1280, mapy))
+        mapx %= screen_size[0]
+        screen.blit(map, (mapx, 0))
+        if mapx > 0:
+            screen.blit(map, (mapx - screen_size[0], 0))
+        if mapx < 0:
+            screen.blit(map, (mapx + screen_size[0], 0))
         for simplex in hull:
             p = np.array([screen_size * angles_to_world_pos(airports[i].latitude_deg, airports[i].longitude_deg) for i in simplex])
-            p[:,0] += mapx
-            p[:,1] += mapy
+            p[:,0] = (p[:,0] + mapx) % screen_size[0]
             for a, b in pairs(p):
                 pygame.draw.line(screen, (0, 255, 0), a, b, 1)
 
         for airport in airports:
             p = angles_to_world_pos(airport.latitude_deg , airport.longitude_deg)
             p *= screen_size
-            p[0] += mapx
-            p[1] += mapy
+            p[0] = (p[0] + mapx) % screen_size[0]
             pygame.draw.circle(screen, (255, 0, 0), p, 5.)
         pygame.display.update()

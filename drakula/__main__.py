@@ -22,21 +22,35 @@ if __name__ == '__main__':
     pygame.init()
     screen = pygame.display.set_mode(screen_size)
     map = pygame.image.load("map.jpg")
-
+    pygame.display.set_caption("Dracula")
+    icon = pygame.image.load("./vampire.png")
+    pygame.display.set_icon(icon)
+    mapx = 0
+    mapy = 0
     running = True
     while running:
         screen.fill((255, 255, 255))
-        screen.blit(map,(0,0))
+        screen.blit(map,(mapx,mapy))
+        screen.blit(map,(mapx + 1275, mapy))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT:
+                    mapx += 20
+                if event.key == pygame.K_RIGHT:
+                    mapx -= 20
         for simplex in hull:
             p = np.array([screen_size * angles_to_world_pos(airports[i].latitude_deg, airports[i].longitude_deg) for i in simplex])
+            p[:,0] += mapx
+            p[:,1] += mapy
             for a, b in pairs(p):
                 pygame.draw.line(screen, (0, 255, 0), a, b, 1)
 
         for airport in airports:
-            p = angles_to_world_pos(airport.latitude_deg, airport.longitude_deg)
+            p = angles_to_world_pos(airport.latitude_deg , airport.longitude_deg)
             p *= screen_size
+            p[0] += mapx
+            p[1] += mapy
             pygame.draw.circle(screen, (255, 0, 0), p, 5.)
         pygame.display.update()

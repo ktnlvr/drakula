@@ -75,7 +75,17 @@ The player can save and restore their progress to pick up a game later.
 
 ### Target Platforms
 
-It is imperative that the game can run on `Linux` and Windows devices.
+It is imperative that the game can run on `Linux` and `Windows 10/11` devices.
+
+The recommended system requirements are as follows:
+* 64 or 32-bit processor and an operating system.
+* Windows 10 (64 or 32-bit), Windows 11, Linux (6.1.X)
+* AMD FX-4300 (4 * 3800) or equivalent / Intel Core i3-3240 (2 * 3400) or equivalent
+* 2 GB RAM
+* Radeon HD 7750 (1024 VRAM) or equivalent / GeForce GT640 (2048 VRAM) or equivalent
+* 2 GB of storage space
+
+While minor improvements to adapt the code for other platforms can be done, they are not a priority.
 
 The target Python version is 3.9, with all the subsequent Python3.X versions following as per Python's major
 version compatibility policy.

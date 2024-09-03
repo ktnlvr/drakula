@@ -18,12 +18,6 @@ class GameState:
 
         graph = defaultdict(set)
         for simplex in hull:
-            s = np.delete(points[simplex], 2, 1)
-
-            # filter out the airports that are too clumped together
-            if are_collinear(*s):
-                continue
-
             for i, j in pairs(simplex):
                 graph[i].add(j)
                 graph[j].add(i)

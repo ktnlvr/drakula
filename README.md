@@ -90,15 +90,15 @@ While minor improvements to adapt the code for other platforms can be done, they
 The target Python version is 3.9, with all the subsequent Python3.X versions following as per Python's major
 version compatibility policy.
 
-All the dependencies are listed in the [requirements.txt](./requirements.txt) and should run as per their own compatibility policy.
+All the dependencies are listed in the [`requirements.txt`](./requirements.txt) and should run as per their own compatibility policy.
 
-The product also requires an active and running and accessable instance of MariaDB. The credentials, as well as the
+The product also requires an active and running and accessible instance of MariaDB. The credentials, as well as the
 port and the host should be configured following the [Configuration](#configuration) section.
 
 ### Configuration
 
 Configuration is done via environmental variables. They can be both fetched from and environment and a `.env` file.
-For more examples see [example.env](./example.env).
+For more examples see [`example.env`](./example.env).
 
 ## Quality Requirements
 
@@ -108,7 +108,10 @@ The game should be appropriate for players of age 12 and more. As a guideline, t
 
 > Video games that show violence of a slightly more graphic nature towards fantasy characters or non-realistic violence towards human-like characters would fall in this age category. Sexual innuendo or sexual posturing can be present, while any bad language in this category must be mild.
 
+In practice, this requirement is not difficult to satisfy. Since conceptually the game does not rely on violence or blood,
+no additional effort was needed to satisfy the criteria above.
+
 ### Legal
 
 All of the assets used in game must be distributed under a public domain license by a third party or produced in house
-following the licensing requirements of the active license (see [LICENSE.txt](./LICENSE.txt)).
+following the licensing requirements of the active license (see [`LICENSE.txt`](./LICENSE.txt)).

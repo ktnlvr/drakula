@@ -45,5 +45,9 @@ def geodesic_to_3d_pos(lat_deg: float, lon_deg: float, alt_ft: float, flattening
 
     return np.array([x, y, z])
 
+# https://math.stackexchange.com/questions/804301/what-is-the-approximation-equation-for-making-the-day-night-wave
+def solar_terminator_rad(lat_rad: float, gamma: float) -> float:
+    return atan(gamma * sin(lat_rad))
+
 def delaunay_triangulate_points(points):
     return Delaunay(points).convex_hull

@@ -1,4 +1,4 @@
-from collections import defaultdict
+from math import pi, tau
 
 import dotenv
 import pygame
@@ -7,7 +7,7 @@ import numpy as np
 from drakula.db import Database, GameDatabaseFacade
 from drakula.state import GameState
 from drakula.utils import pairs
-from drakula.maths import angles_to_world_pos, geodesic_to_3d_pos, delaunay_triangulate_points
+from drakula.maths import angles_to_world_pos, geodesic_to_3d_pos, delaunay_triangulate_points, solar_terminator_rad
 
 GRAPH_PRUNE_LEN = 10
 
@@ -61,10 +61,17 @@ def main(*args, **kwargs):
                 else:
                     pygame.draw.line(screen, (0, 255, 0), a, b, 1)
 
+        N = 100
+        gamma = 1
+        for i in range(N + 1):
+            px = screen_size[1] * (solar_terminator_rad(tau * (state.day_percentage + i / N), gamma) / (pi / 4) + 1) / 2
+            pygame.draw.circle(screen, (255, 0, 0), ((i / N)* screen_size[0], px), 5.)
+
         for airport in airports:
             p = angles_to_world_pos(airport.latitude_deg, airport.longitude_deg)
             p *= screen_size
             pygame.draw.circle(screen, (255, 0, 0), p, 5.)
+
         pygame.display.update()
 
 if __name__ == '__main__':

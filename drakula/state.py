@@ -40,11 +40,13 @@ class GameState:
         for v0 in self.graph:
             for v1 in self.graph[v0]:
                 # to simplify the cache use symmetry of distances
-                if v0 > v1:
+                if v1 > v0:
                     v0, v1 = v1, v0
                 p0 = airports[v0].position
                 p1 = airports[v1].position
                 self._distance_cache[(v0, v1)] = distance(p0, p1).kilometers
 
     def distance_between(self, idx0: int, idx1: int) -> float:
+        if idx1 > idx0:
+            idx0, idx1 = idx1, idx0
         return self._distance_cache.get((idx0, idx1)) or nan

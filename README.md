@@ -34,22 +34,27 @@ to the product, and a listing of specific design decisions taken in the making o
 
 ## Vision
 
+Count Dracula is a powerful vampire lord on a mission to destroy the human race. He has began wreaking havoc all around the world. The player will attempt to bring the might Count down, by trapping the airports and catching the vampire to end the chaos once and for all.
+
 ### Inspiration
 
 The conceptual idea of travelling to hunt down Dracula is taken from the boardgame Fury Of Dracula. However, to avoid plagiarism, none of the programmers involved are informed about the specific rules, mechanics or other game components.
 
 ### Theme
 
-Like the inspiration, the game centers on catching count Dracula, which has gone on a rampage around the world destroying cities and turning people into vampires!
+Like the inspiration, the game centers on the mighty Dracula going around the world.
 
 ### Goals
 
 Providing entertainment is the main design goal. Akin to other session games, it should be easy to run, play a couple of games and then exit.
 
-
 ### User Skills
 
 The game is focused on testing the player's ability to strategize, handle resources, deal with hidden information and type on a keyboard.
+
+### Loss and Win Conditions
+
+The player wins if they can defeat Dracula. This is done by landing on the same airport as him and initiating combat. This can happen unintentionally, if on the Count's turn he moves to the player's airport or intentionally, if the player
 
 ### Game Mechanics
 
@@ -61,15 +66,21 @@ This would be easy lest the position of the count was known. During the entire g
 The game loop is separated into turns. On their turn, the player chooses a location to fly to and optionally installs a
 trap in the current airport.
 
-### Progression and Challenge
+When due to the player's or Dracula's move both end up on the same airport a battle ensues. If the airport was previously trapped, 
 
-### Loss and Win Conditions
+### Progression and Challenge
 
 ### Graphic Design
 
 ## Functional Requirements
 
-A player can move from one airport to another using typing.
+As a player, I can move between airports in alignment with my understanding of the current position of the Count. This is the key element of strategy, since I can move towards or away from the Dracula depending on my preparation.
+
+As a player, I can "trap" and airport using my CURRENCY_NAME. If Dracula lands on a trapped airport, I am instantly informed about it. The Dracula can't move for PERIOD_OF_TIME, so I can go towards his airport and catch him.
+
+As Dracula, my movement is guided by logic and rules. I can not cross a flightway if I already crossed it and I have other options. So if, say, I am at Lisbon and it has a flight to 
+
+As Dracula, I destroy cities in my way. When I land on an airport, a timer of CITY_DESTROY_TIME starts. When the timer is elapsed, the city is erased off the map. However, if the player lands on a city that is about to be destroyed, it is saved and the player is informed how long ago I was here.
 
 The player can save and restore their progress to pick up a game later.
 

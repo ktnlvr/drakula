@@ -37,12 +37,14 @@ class GameDatabaseFacade:
         self.continents = list()
         self.update_caches()
 
-    def fetch_random_airports(self, amount: Optional[int] = None, continent: Optional[str] = None) -> list[Airport]:
+    def fetch_random_airports(self, amount: Optional[int] = None, continent: Optional[str] = None, *, seed: Optional[int] = None) -> list[Airport]:
         amount = amount or 1
-        continent = continent or "EU"
-        if continent not in self.continents:
+        if continent and continent not in self.continents:
             raise Exception(f"Continent `{continent}` does not exist")
-        query = f"select * from airport where airport.continent = '{continent}' order by RAND() limit {amount}"
+        query = f"select * from airport"
+        if continent:
+            query += f" where airport.continent = '{continent}'"
+        query += f" order by RAND({'' if seed is None else seed}) limit {amount}"
         return list_map(self.db.multi_query(query), Airport)
 
     def update_caches(self):

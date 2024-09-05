@@ -23,7 +23,6 @@ class Renderer:
     def end(self):
         pygame.display.update()
 
-    @property
     def handle_event(self, event: pygame.event.Event) -> bool:
         """
         Handle all the events relevant to the renderer.

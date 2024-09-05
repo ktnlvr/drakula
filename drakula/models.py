@@ -22,6 +22,6 @@ class Airport(BaseModel):
     home_link: str
 
     @property
-    def position(self) -> NDArray((2,), float):
+    def position(self) -> NDArray[(2,)]:
         return np.array([self.latitude_deg, self.longitude_deg])
 

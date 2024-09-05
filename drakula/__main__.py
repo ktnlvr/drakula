@@ -3,6 +3,7 @@ from collections import defaultdict
 import dotenv
 import pygame
 import numpy as np
+from pygame import VIDEORESIZE
 
 from drakula.db import Database, GameDatabaseFacade
 from drakula.state import GameState
@@ -28,11 +29,11 @@ def main(*args, **kwargs):
     state = GameState(airports)
 
     # TODO: use the dimensions of the actual screen
-    screen_size = np.array([1280, 644])
+    screen_size = np.array([2040, 1020])
 
     pygame.init()
-    screen = pygame.display.set_mode(screen_size)
-    map = pygame.image.load("map.jpg")
+    screen = pygame.display.set_mode(screen_size,pygame.RESIZABLE)
+    map = pygame.image.load("map.png")
     pygame.display.set_caption("Dracula")
     icon = pygame.image.load("./vampire.png")
     pygame.display.set_icon(icon)
@@ -44,6 +45,11 @@ def main(*args, **kwargs):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            if event.type == VIDEORESIZE:
+                screen_size = (event.w,event.h)
+                screen = pygame.display.set_mode(screen_size, pygame.RESIZABLE)
+                map = pygame.image.load("map.png")
+                map = pygame.transform.scale(map,screen_size)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
                     mapx += 100

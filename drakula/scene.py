@@ -4,8 +4,9 @@ from typing import Optional
 from .renderer import Renderer
 from .state import GameState
 
-class Scene:
-    def previous_scene() -> Optional['Scene']:
+class Scene(ABC):
+    @property
+    def previous_scene(self) -> Optional['Scene']:
         return None
 
     @abstractmethod

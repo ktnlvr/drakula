@@ -3,8 +3,11 @@ from math import atan, cos, sin, tan
 
 from scipy.spatial import Delaunay
 
+Rad = float
+Deg = float
+
 # https://stackoverflow.com/questions/1369512/converting-longitude-latitude-to-x-y-on-a-map-with-calibration-points
-def angles_to_world_pos(lat: float, lon: float) -> np.ndarray:
+def angles_to_world_pos(lat: Deg, lon: Deg) -> np.ndarray:
     """
     :param lat: north-south position of a point (from -90 at south to +90 at north).
     :param lon: east-west position of a point relative to the prime meridian (from -180 to +180)
@@ -16,7 +19,7 @@ def angles_to_world_pos(lat: float, lon: float) -> np.ndarray:
     return np.array([x, y])
 
 # https://stackoverflow.com/questions/10473852/convert-latitude-and-longitude-to-point-in-3d-space
-def geodesic_to_3d_pos(lat_deg: float, lon_deg: float, alt_ft: float, flattening: float = 1/298.25, radius_ft: float = 2.093e+7) -> np.ndarray:
+def geodesic_to_3d_pos(lat_deg: Deg, lon_deg: Deg, alt_ft: float, flattening: float = 1/298.25, radius_ft: float = 2.093e+7) -> np.ndarray:
     """
     Convert latitude and longitude to coordinates on a sphere.
 
@@ -46,7 +49,7 @@ def geodesic_to_3d_pos(lat_deg: float, lon_deg: float, alt_ft: float, flattening
     return np.array([x, y, z])
 
 # https://math.stackexchange.com/questions/804301/what-is-the-approximation-equation-for-making-the-day-night-wave
-def solar_terminator_rad(lat_rad: float, gamma: float) -> float:
+def solar_terminator_rad(lat_rad: Rad, gamma: Rad) -> float:
     return atan(gamma * sin(lat_rad))
 
 def delaunay_triangulate_points(points):

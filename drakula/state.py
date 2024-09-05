@@ -61,4 +61,6 @@ class GameState:
 
     @property
     def day_percentage(self) -> float:
-        return self.timestamp.second + 60 * (self.timestamp.minute + 60 * self.timestamp.hour)
+        secs = self.timestamp.second + 60 * (self.timestamp.minute + 60 * self.timestamp.hour)
+        secs_in_day = 86400
+        return secs / secs_in_day

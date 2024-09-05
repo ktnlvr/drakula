@@ -3,9 +3,8 @@ from numpy.random import choice
 import dotenv
 import pygame
 
-from .utils import list_map
 from .maths import angles_to_world_pos
-from .dracula import list_moves
+from .dracula import DraculaBrain
 from .game import MapScene
 from .db import Database, GameDatabaseFacade
 from .state import GameState
@@ -29,6 +28,7 @@ def main(*args, **kwargs):
 
     scene = MapScene(state)
 
+    brain = DraculaBrain()
     current_dracula_pos = 0
     trail = [current_dracula_pos]
 
@@ -36,7 +36,7 @@ def main(*args, **kwargs):
     while running:
         renderer.begin()
         scene.render(renderer)
-        moves = list_moves(state, current_dracula_pos, 10)
+        moves = brain.list_moves(state, current_dracula_pos)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:

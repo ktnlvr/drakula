@@ -24,12 +24,12 @@ def main(*args, **kwargs):
 
     pygame.init()
 
-    scene = MapScene()
+    scene = MapScene(state)
 
     running = True
     while running:
         renderer.begin()
-        scene.render(state, renderer)
+        scene.render(renderer)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:

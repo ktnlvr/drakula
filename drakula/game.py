@@ -13,19 +13,20 @@ def should_wrap_coordinate(a: float, b: float, span: float) -> bool:
     return abs(wrapped_signed_distance) < abs(signed_distance)
 
 class MapScene(Scene):
-    def __init__(self) -> None:
+    def __init__(self, state: GameState) -> None:
         super().__init__()
 
+        self.state = state
         self.world_map = pygame.image.load("map.jpg")
 
-    def render(self, state: GameState, renderer: Renderer):
+    def render(self, renderer: Renderer):
         renderer.blit(self.world_map, (0, 0))
 
-        for i, js in state.graph.items():
-            airport = state.airports[i]
+        for i, js in self.state.graph.items():
+            airport = self.state.airports[i]
             a = angles_to_world_pos(*airport.position)
             for j in js:
-                connection = state.airports[j]
+                connection = self.state.airports[j]
                 b = angles_to_world_pos(*connection.position)
 
                 # because of the signed distance, the calculations are different for case b[0] > a[0]
@@ -44,11 +45,11 @@ class MapScene(Scene):
         N = 100
         gamma = 0.1
         for i in range(N + 1):
-            px = (solar_terminator_rad(tau * (state.day_percentage + i / N), gamma) / (tau / 8) + 1) / 2
+            px = (solar_terminator_rad(tau * (self.state.day_percentage + i / N), gamma) / (tau / 8) + 1) / 2
             renderer.draw_circle((255, 0, 0), ((i / N), px), .01)
 
-        for airport in state.airports:
+        for airport in self.state.airports:
             p = angles_to_world_pos(airport.latitude_deg, airport.longitude_deg)
             renderer.draw_circle((255, 0, 0), p, 0.01)
 
-        super().render(state, renderer)
+        super().render(renderer)

@@ -12,7 +12,7 @@ class Scene(ABC):
         return None
 
     @abstractmethod
-    def render(self, state: GameState, renderer: Renderer):
+    def render(self, renderer: Renderer):
         ...
 
     @property

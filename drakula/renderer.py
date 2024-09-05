@@ -1,8 +1,14 @@
-from typing import Tuple
+from typing import Optional, Tuple
 import numpy as np
 import pygame
 
 Coordinate = Tuple[float, float]
+
+
+def should_wrap_coordinate(a: float, b: float, span: float) -> bool:
+    signed_distance = b - a
+    wrapped_signed_distance = span - signed_distance
+    return abs(wrapped_signed_distance) < abs(signed_distance)
 
 class Renderer:
     def __init__(self, screen_size: Tuple[int, int]):
@@ -16,6 +22,16 @@ class Renderer:
     
     def draw_line(self, color: pygame.Color, begin: Coordinate, end: Coordinate, width: float = 0):
         pygame.draw.line(self.surface, color, self.project(begin), self.project(end), int(max(width * self.minimal_scalar, 1)))
+
+    def draw_line_wrapping(self, color: pygame.Color, begin: Coordinate, end: Coordinate, width: float = 0, color_if_wrap: Optional[pygame.Color] = None):
+        a, b = begin, end
+        if b[0] < a[0]:
+            a, b = b, a
+        if should_wrap_coordinate(a[0], b[0], 1):
+            self.draw_line(color_if_wrap or color, a, (b[0] - 1, b[1]), width)
+            self.draw_line(color_if_wrap or color, b, (a[0] + 1, a[1]), width)
+        else:
+            self.draw_line(color, a, b, width)
     
     def draw_circle(self, color: pygame.Color, at: Coordinate, radius: float):
         pygame.draw.circle(self.surface, color, self.project(at), radius * self.minimal_scalar)

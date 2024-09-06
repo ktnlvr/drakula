@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.typing import NDArray
 
-from pydantic import BaseModel, PositiveInt
+from pydantic import BaseModel, PositiveInt, field_validator
 
 class Airport(BaseModel):
     id: PositiveInt
@@ -21,7 +21,12 @@ class Airport(BaseModel):
     local_code: str
     home_link: str
 
+    @field_validator('elevation_ft')
+    def check_elevation(self, value: str) -> int:
+        if not value:
+            return 0
+        return value
+
     @property
     def position(self) -> NDArray[(2,)]:
         return np.array([self.latitude_deg, self.longitude_deg])
-

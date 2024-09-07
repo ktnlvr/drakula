@@ -22,7 +22,8 @@ class Airport(BaseModel):
     home_link: str
 
     @field_validator('elevation_ft')
-    def check_elevation(self, value: str) -> int:
+    @staticmethod
+    def check_elevation(value: str) -> int:
         if not value:
             return 0
         return value

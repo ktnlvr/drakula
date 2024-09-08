@@ -7,6 +7,8 @@ from .game import MapScene
 from .db import Database, GameDatabaseFacade
 from .state import GameState
 from .renderer import Renderer
+from . import Character, airport_icao
+from pygame.time import Clock
 
 GRAPH_PRUNE_LEN = 10
 
@@ -26,21 +28,37 @@ def main(*args, **kwargs):
 
     scene = MapScene()
 
+    character = Character(airports[0])#start at the first airport
+    clock = Clock()
+
     running = True
     while running:
-        renderer.begin()
-        scene.render(state, renderer)
+        #renderer.begin()
+        #scene.render(state, renderer)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            if renderer.handle_event(event):
-                continue
-            if scene.handle_event(event):
-                continue
+            elif event.type in (pygame.KEYDOWN, pygame.MOUSEBUTTONDOWN, pygame.MOUSEMOTION, pygame.MOUSEBUTTONUP):
+                character.handle_input(event, airports)
+                if renderer.handle_event(event):
+                    continue
+                if scene.handle_event(event):
+                    continue
 
         renderer.end()
         scene = scene.next_scene
+
+        scene.update(state, character)  # Update
+        renderer.begin()
+        scene.render(state, renderer)
+        character.render(renderer, airports)
+        renderer.end()
+
+        pygame.display.flip()
+        clock.tick(30)  # Limit frame
+
+    pygame.quit()
 
 if __name__ == '__main__':
     dotenv.load_dotenv()

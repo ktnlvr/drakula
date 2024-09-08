@@ -19,7 +19,7 @@ class MapScene(Scene):
         self.world_map = pygame.image.load("map.jpg")
 
     def render(self, state: GameState, renderer: Renderer):
-        renderer.blit(self.world_map, (0, 0))
+        renderer.surface.blit(self.world_map, (0, 0))
 
         for i, js in state.graph.items():
             airport = state.airports[i]
@@ -52,3 +52,16 @@ class MapScene(Scene):
             renderer.draw_circle((255, 0, 0), p, 0.01)
 
         super().render(state, renderer)
+
+
+    def update(self, state, character):
+        cntd_airports = self.get_cntd_airports(state, character.current_airport)
+        character.get_cntd_airports(cntd_airports)
+
+    def get_cntd_airports(self, state, current_airport):
+        connected = []
+        current_airport_index = state.airports.index(current_airport)
+        if current_airport_index in state.graph:
+            for connected_index in state.graph[current_airport_index]:
+                connected.append(state.airports[connected_index])
+        return connected

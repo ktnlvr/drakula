@@ -4,6 +4,7 @@ import dotenv
 import pygame
 import numpy as np
 from pygame import VIDEORESIZE
+from pygame._sdl2 import Window
 
 from drakula.db import Database, GameDatabaseFacade
 from drakula.state import GameState
@@ -27,6 +28,7 @@ def main(*args, **kwargs):
         airports.extend(game.fetch_random_airports(4, continent))
 
     state = GameState(airports)
+    print(f"{state.graph[2]}")
 
     # TODO: use the dimensions of the actual screen
     screen_size = np.array([2040, 1020])
@@ -38,7 +40,9 @@ def main(*args, **kwargs):
     icon = pygame.image.load("./vampire.png")
     pygame.display.set_icon(icon)
     mapx = 0
+    og_map = map
     running = True
+    fullscreen = False
     while running:
         screen.fill((255, 255, 255))
         screen.blit(map, (0, 0))
@@ -48,11 +52,22 @@ def main(*args, **kwargs):
             if event.type == VIDEORESIZE:
                 screen_size = (event.w,event.h)
                 screen = pygame.display.set_mode(screen_size, pygame.RESIZABLE)
-                map = pygame.image.load("map.png")
-                map = pygame.transform.scale(map,screen_size)
+                map = pygame.transform.scale(og_map,screen_size)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
                     mapx += 100
+                if event.key == pygame.K_ESCAPE:
+                    running = False
+                if event.key == pygame.K_z:
+                    fullscreen = not fullscreen
+                    if fullscreen:
+                        screen = pygame.display.set_mode(screen_size, pygame.FULLSCREEN)
+                        info = pygame.display.Info()
+                        screen_size = (info.current_w, info.current_h)
+                    else:
+                        screen_size = (2040, 1020)
+                        screen = pygame.display.set_mode(screen_size, pygame.RESIZABLE)
+                    map = pygame.transform.scale(og_map, screen_size)
                 if event.key == pygame.K_RIGHT:
                     mapx -= 100
         mapx %= screen_size[0]

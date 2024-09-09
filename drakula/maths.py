@@ -67,7 +67,7 @@ def to_julian_datetime(date: datetime.datetime) -> float:
     return (
         date.toordinal()
         + (date.hour * 60 * 60 + date.minute * 60 + date.second) / (24 * 60 * 60)
-        + 1721424.5
+        + 1721424.375
     )
 
 

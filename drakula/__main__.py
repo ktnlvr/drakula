@@ -5,7 +5,7 @@ import pygame
 
 from .game import MapScene
 from .debug import debug_layers
-from .db import Database, GameDatabaseFacade
+from .db import create_database_facade
 from .state import GameState
 from .renderer import Renderer
 from .character import Character
@@ -15,12 +15,11 @@ from .logging import logger
 def main(*args, **kwargs):
     logger.info("Setting up the database")
 
-    db = Database()
-    game = GameDatabaseFacade(db)
+    game = create_database_facade()
 
     logger.info("Fetching airports")
     airports = list()
-    for continent in game.continents:
+    for continent in game._continents:
         airports.extend(game.fetch_random_airports(4, continent))
     logger.info(f"Got {len(airports)} airports")
 
@@ -68,5 +67,7 @@ if __name__ == "__main__":
     dotenv.load_dotenv()
     config_logging(level=INFO)
     if layers := debug_layers():
-        logger.info(f"{len(layers)} debug layers enabled: {', '.join((layer.lower() for layer in layers))}")
+        logger.info(
+            f"{len(layers)} debug layers enabled: {', '.join((layer.lower() for layer in layers))}"
+        )
     main()

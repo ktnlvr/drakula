@@ -1,3 +1,4 @@
+import datetime
 from math import pi, tau
 
 import dotenv
@@ -41,6 +42,7 @@ def main(*args, **kwargs):
 
         renderer.end()
         scene = scene.next_scene
+
 
 if __name__ == '__main__':
     dotenv.load_dotenv()

@@ -3,17 +3,41 @@ from math import atan, cos, sin, tan
 
 from scipy.spatial import Delaunay
 
-
+# https://stackoverflow.com/questions/1369512/converting-longitude-latitude-to-x-y-on-a-map-with-calibration-points
 def angles_to_world_pos(lat: float, lon: float) -> np.ndarray:
+    """
+    :param lat: north-south position of a point (from -90 at south to +90 at north).
+    :param lon: east-west position of a point relative to the prime meridian (from -180 to +180)
+    :return: the position of a point projected equirectangularly onto a flat plane
+    """
     x = (180 + lon) / 360
     y = (90 - lat) / 180
 
     return np.array([x, y])
 
-def geodesic_to_3d_pos(lat: float, lon: float, alt: float) -> np.ndarray:
-    f = 0
-    l = atan((1 - f)**2 * tan(lat))
-    r = 1000
+# https://stackoverflow.com/questions/10473852/convert-latitude-and-longitude-to-point-in-3d-space
+def geodesic_to_3d_pos(lat_deg: float, lon_deg: float, alt_ft: float, flattening: float = 1/298.25, radius_ft: float = 2.093e+7) -> np.ndarray:
+    """
+    Convert latitude and longitude to coordinates on a sphere.
+
+    :param lat_deg: north-south position of a point (from -90 at south to +90 at north).
+    :param lon_deg: east-west position of a point relative to the prime meridian
+    :param alt_ft: height of the position relative to the mean sea level
+    :param flattening: compression of a sphere along the diameter (basically eccentricity but 3D).
+        use 0 for naive projection, while the actual value is closer to 1/298.25
+        (see https://www.oc.nps.edu/oc2902w/c_mtutor/shape/shape3.htm)
+    :return: the position a given point would be at on the sphere
+    """
+    # for a spherical planet flattening should be zero
+    # since earth is actually elliptical, we need to account for that
+    # it will depend on the projection used
+
+    # latitude at mean sea level
+    lat = lat_deg * np.pi / 180.
+    lon = lon_deg * np.pi / 180.
+    alt = alt_ft
+    l = atan((1 - flattening)**2 * tan(lat))
+    r = radius_ft
 
     x = r * cos(l) * cos(lon) + alt * cos(lat) * cos(lon)
     y = r * cos(l) * sin(lon) + alt * cos(lat) * sin(lon)
@@ -21,5 +45,16 @@ def geodesic_to_3d_pos(lat: float, lon: float, alt: float) -> np.ndarray:
 
     return np.array([x, y, z])
 
-def points_to_hull(points):
-    return Delaunay(points).simplices
+def delaunay_triangulate_points(points):
+    return Delaunay(points).convex_hull
+
+def are_collinear(a, b, c, tolerance: float = 0.85) -> bool:
+    # calculate the Pearson's correlation coefficient
+    points = np.array([a, b, c]).T
+    norm_points = (points - np.min(points)) / (np.max(points) - np.min(points))
+    mean = np.mean(norm_points, axis=1)
+    diffs = norm_points - np.reshape(mean, (2,1))
+    num = np.sum(np.prod(diffs.T, axis=1))
+    den = np.sqrt(np.sum(diffs ** 2))
+    r = num / den
+    return abs(r) > tolerance

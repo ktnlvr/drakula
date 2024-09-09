@@ -15,13 +15,6 @@ from .debug import DEBUG_LAYER_SHOW_SOLAR_TERMINATOR, is_debug_layer_enabled
 import pygame
 import numpy as np
 
-
-def should_wrap_coordinate(a: float, b: float, span: float) -> bool:
-    signed_distance = b - a
-    wrapped_signed_distance = span - signed_distance
-    return abs(wrapped_signed_distance) < abs(signed_distance)
-
-
 class MapScene(Scene):
     def __init__(self, state: GameState) -> None:
         super().__init__()
@@ -39,18 +32,7 @@ class MapScene(Scene):
                 connection = self.state.airports[j]
                 b = angles_to_world_pos(*connection.position)
 
-                # because of the signed distance, the calculations are different for case b[0] > a[0]
-                # TODO: figure out the case for b[0] > a[0]
-                # until then this logic allows deduping the lines from A->B and B->A
-                # AND avoiding handling wrapping around the right edge of the map
-                if b[0] < a[0]:
-                    continue
-
-                if should_wrap_coordinate(a[0], b[0], 1):
-                    renderer.draw_line((255, 200, 0), (a[0], a[1]), (b[0] - 1, b[1]))
-                    renderer.draw_line((255, 200, 0), (b[0], b[1]), (a[0] + 1, a[1]))
-                else:
-                    renderer.draw_line((0, 255, 0), a, b)
+                renderer.draw_line_wrapping((0, 220, 0), a, b)
 
         if is_debug_layer_enabled(DEBUG_LAYER_SHOW_SOLAR_TERMINATOR):
             julian_dt = to_julian_datetime(self.state.timestamp)

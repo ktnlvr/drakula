@@ -33,20 +33,18 @@ def main(*args, **kwargs):
 
     running = True
     while running:
-        #renderer.begin()
-        #scene.render(state, renderer)
+        renderer.begin()
+        scene.render(state, renderer)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            elif event.type in (pygame.KEYDOWN, pygame.MOUSEBUTTONDOWN, pygame.MOUSEMOTION, pygame.MOUSEBUTTONUP):
-                character.handle_input(event, airports)
-                if renderer.handle_event(event):
-                    continue
-                if scene.handle_event(event):
-                    continue
+            character.handle_input(event, airports)
+            if renderer.handle_event(event):
+                continue
+            if scene.handle_event(event):
+                continue
 
-        renderer.end()
         scene = scene.next_scene
 
         scene.update(state, character)  # Update
@@ -57,6 +55,8 @@ def main(*args, **kwargs):
 
         pygame.display.flip()
         clock.tick(30)  # Limit frame
+
+        renderer.end()
 
     pygame.quit()
 

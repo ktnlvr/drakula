@@ -1,5 +1,7 @@
 # drakula
 
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
 A third-person single-player strategic vampire hunting game
 loosely inspired by [Fury Of Dracula (Third/Fourth Edition)](https://boardgamegeek.com/boardgame/181279/fury-of-dracula-thirdfourth-edition).
 

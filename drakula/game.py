@@ -2,10 +2,12 @@ from math import tau
 
 from pygame.event import Event
 
+from .utils import pairs
 from .scene import Scene
 from .renderer import Renderer
 from .state import GameState
 from .maths import angles_to_world_pos, solar_terminator_rad
+from .debug import DEBUG_LAYER_SHOW_SOLAR_TERMINATOR, is_debug_layer_enabled
 
 import pygame
 
@@ -49,11 +51,16 @@ class MapScene(Scene):
                 else:
                     renderer.draw_line((0, 255, 0), a, b)
 
-        N = 100
-        gamma = 0.1
-        for i in range(N + 1):
-            px = (solar_terminator_rad(tau * (state.day_percentage + i / N), gamma) / (tau / 8) + 1) / 2
-            renderer.draw_circle((255, 0, 0), ((i / N), px), .01)
+        if is_debug_layer_enabled(DEBUG_LAYER_SHOW_SOLAR_TERMINATOR):
+            N = 100
+            gamma = 0.5
+            points = []
+            for i in range(N + 1):
+                px = (solar_terminator_rad(tau * (state.day_percentage + i / N), gamma) / (tau / 8) + 1) / 2
+                points.append((i / N, px))
+                
+            for i in range(len(points) - 1):
+                renderer.draw_line(0, points[i], points[i + 1], 0.001)
 
         for airport in state.airports:
             p = angles_to_world_pos(airport.latitude_deg, airport.longitude_deg)

@@ -9,6 +9,8 @@ from .game import MapScene
 from .db import Database, GameDatabaseFacade
 from .state import GameState
 from .renderer import Renderer
+from . import Character, airport_icao
+from pygame.time import Clock
 
 GRAPH_PRUNE_LEN = 10
 
@@ -32,15 +34,19 @@ def main(*args, **kwargs):
     current_dracula_pos = 0
     trail = [current_dracula_pos]
 
+    character = Character(airports[0])#start at the first airport
+    clock = Clock()
+
     running = True
     while running:
         renderer.begin()
-        scene.render(renderer)
+        scene.render(state, renderer)
         moves = brain.list_moves(state, current_dracula_pos)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            character.handle_input(event, airports)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     print(moves)
@@ -51,7 +57,7 @@ def main(*args, **kwargs):
                 continue
             if scene.handle_event(event):
                 continue
-            
+
         for i in range(len(trail) - 1):
             a, b = [angles_to_world_pos(*p) for p in [airports[trail[i]].position, airports[trail[i + 1]].position]]
             renderer.draw_line_wrapping((100, 100, 255, 100), a, b, 0.01)
@@ -60,9 +66,19 @@ def main(*args, **kwargs):
         for c, i in moves:
             p = c / max([c for c, _ in moves])
             renderer.draw_circle((150, 150, 255), angles_to_world_pos(*airports[i].position), 0.01 * p)
+        scene = scene.next_scene
+
+        scene.update(state, character) #Updates current pos
+        scene.render(state, renderer)
+        character.render(renderer, airports)
+        renderer.end()
+
+        pygame.display.flip()
+        clock.tick(30)  # Limit frame
 
         renderer.end()
-        scene = scene.next_scene
+
+    pygame.quit()
 
 if __name__ == '__main__':
     dotenv.load_dotenv()

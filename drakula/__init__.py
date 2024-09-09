@@ -2,11 +2,8 @@
 from types import NoneType
 
 from .maths import angles_to_world_pos
-from .db import Database, GameDatabaseFacade
-from .game import MapScene
 from .models import Airport
 from .renderer import Renderer
-from .state import GameState
 
 import pygame
 
@@ -22,7 +19,7 @@ class Character:
         self.cntd_airports = []
         print(f"Character initial airport: {initial_airport.ident}")
 
-    def handle_input(self, event, airports):
+    def handle_input(self, event: pygame.event.Event, airports: list[Airport]):
         if event.type == pygame.MOUSEBUTTONDOWN:
             if self.input_rect.collidepoint(event.pos):
                 self.input_active = not self.input_active
@@ -37,22 +34,22 @@ class Character:
             else:
                 self.input_text += event.unicode.upper()
 
-    def aftermove_airport(self, new_airport:Airport):
+    def aftermove_airport(self, new_airport: Airport):
         self.current_airport = new_airport
         print(f"Character moved to airport: {new_airport.ident}")
 
-    def input_icao(self, airports):
+    def input_icao(self, airports: list[Airport]):
         icao_code = self.input_text.strip()
         new_airport = airport_icao(airports,icao_code)
         if new_airport:
             self.aftermove_airport(new_airport)
         self.input_text =""
 
-    def get_cntd_airports(self ,cntd_airports):
+    def get_cntd_airports(self, cntd_airports):
         self.cntd_airports = cntd_airports
 
     #display character position and information
-    def render(self, renderer: Renderer, airports):
+    def render(self, renderer: Renderer, airports: list[Airport]):
         world_pos = angles_to_world_pos(*self.current_airport.position)
         renderer.draw_circle((0, 255, 0), world_pos, 0.004)
 
@@ -78,5 +75,5 @@ class Character:
         renderer.surface.blit(bg_surface, bg_rect)
         renderer.surface.blit(info_text,(padding, padding))
 
-def airport_icao(airports, icao_code):
+def airport_icao(airports: list[Airport], icao_code):
     return next((airport for airport in airports if airport.ident == icao_code), None)

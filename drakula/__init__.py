@@ -1,6 +1,7 @@
 # import components
 from types import NoneType
 
+from .maths import angles_to_world_pos
 from .db import Database, GameDatabaseFacade
 from .game import MapScene
 from .models import Airport
@@ -51,10 +52,9 @@ class Character:
         self.cntd_airports = cntd_airports
 
     #display character position and information
-    def render(self, renderer, airports):
-
-        window_x, window_y = self.p_to_window(renderer.surface, self.current_airport.position)
-        pygame.draw.circle(renderer.surface,(0,255,0),(window_x,window_y),5)
+    def render(self, renderer: Renderer, airports):
+        world_pos = angles_to_world_pos(*self.current_airport.position)
+        renderer.draw_circle((0, 255, 0), world_pos, 0.004)
 
         #input box
         if self.input_active:
@@ -77,14 +77,6 @@ class Character:
         bg_surface.fill((0,0,0,76))#30% opacity
         renderer.surface.blit(bg_surface, bg_rect)
         renderer.surface.blit(info_text,(padding, padding))
-
-    @staticmethod
-    def p_to_window(surface, position):
-        surface_width = surface.get_width()
-        surface_height = surface.get_height()
-        window_x = int((position[1] + 180) * surface_width / 360)
-        window_y = int((90-position[0]) * surface_height / 180)
-        return window_x, window_y
 
 def airport_icao(airports, icao_code):
     return next((airport for airport in airports if airport.ident == icao_code), None)

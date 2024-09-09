@@ -6,7 +6,7 @@ Coordinate = Tuple[float, float]
 
 class Renderer:
     def __init__(self, screen_size: Tuple[int, int]):
-        self.surface = pygame.display.set_mode(screen_size)
+        self.surface = pygame.display.set_mode(screen_size, pygame.RESIZABLE)
 
     def blit(self, source: pygame.Surface, at: Coordinate):
         self.surface.blit(source, self.project(at))
@@ -27,8 +27,11 @@ class Renderer:
         """
         Handle all the events relevant to the renderer.
 
-        :return: False if the event was not handled, True otherwise
+        :return: True if the event was consumed, False otherwise
         """
+        if event.type == pygame.VIDEORESIZE:
+            screen_size = (event.w,event.h)
+            self.surface = pygame.display.set_mode(screen_size, pygame.RESIZABLE)
         return False
 
     @property

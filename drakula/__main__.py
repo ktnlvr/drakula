@@ -27,6 +27,8 @@ def main(*args, **kwargs):
     character = Character(airports[0])  # start at the first airport
     clock = pygame.time.Clock()
 
+    pygame.init()
+
     running = True
     while running:
         renderer.begin()
@@ -38,19 +40,16 @@ def main(*args, **kwargs):
             character.handle_input(event, airports)
             if renderer.handle_event(event):
                 continue
-            if scene.handle_event(event):
+            if scene.handle_event(renderer, event):
                 continue
 
         scene = scene.next_scene
 
-        scene.update(state, character)  # Update
-        renderer.begin()
+        scene.update(state, character)
         scene.render(state, renderer)
         character.render(renderer, airports)
-        renderer.end()
 
-        pygame.display.flip()
-        clock.tick(30)  # Limit frame
+        clock.tick(30)
 
         renderer.end()
 

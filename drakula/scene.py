@@ -19,5 +19,5 @@ class Scene(ABC):
     def next_scene(self) -> 'Scene':
         return self
     
-    def handle_event(self, _: pygame.event.Event) -> bool:
+    def handle_event(self, renderer: Renderer, _: pygame.event.Event) -> bool:
         return False

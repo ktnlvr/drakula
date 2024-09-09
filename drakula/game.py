@@ -1,5 +1,7 @@
 from math import tau
 
+from pygame.event import Event
+
 from .scene import Scene
 from .renderer import Renderer
 from .state import GameState
@@ -16,10 +18,16 @@ class MapScene(Scene):
     def __init__(self) -> None:
         super().__init__()
 
-        self.world_map = pygame.image.load("map.jpg")
+        self.world_map = pygame.image.load("map.png")
+        self.horizontal_scroll = 0
 
     def render(self, state: GameState, renderer: Renderer):
-        renderer.surface.blit(self.world_map, (0, 0))
+        self.horizontal_scroll %= renderer.size[0]
+        renderer.surface.blit(self.world_map, (self.horizontal_scroll, 0))
+        if self.horizontal_scroll > 0:
+            renderer.surface.blit(self.world_map, (self.horizontal_scroll - renderer.size[0], 0))
+        if self.horizontal_scroll < 0:
+            renderer.surface.blit(self.world_map, (self.horizontal_scroll + renderer.size[0], 0))
 
         for i, js in state.graph.items():
             airport = state.airports[i]
@@ -57,6 +65,17 @@ class MapScene(Scene):
     def update(self, state, character):
         cntd_airports = self.get_cntd_airports(state, character.current_airport)
         character.get_cntd_airports(cntd_airports)
+
+    def handle_event(self, renderer: Renderer, event: Event) -> bool:
+        if event.type == pygame.VIDEORESIZE:
+            surface = pygame.display.get_surface()
+            self.world_map = pygame.transform.scale(self.world_map, renderer.size)
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_LEFT:
+                self.horizontal_scroll += 100
+            if event.key == pygame.K_RIGHT:
+                self.horizontal_scroll -= 100
+        return super().handle_event(renderer, event)
 
     def get_cntd_airports(self, state, current_airport):
         connected = []

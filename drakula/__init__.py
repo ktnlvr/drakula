@@ -15,24 +15,18 @@ class Character:
         self.font = pygame.font.Font(None, 22)
         self.input_rect = pygame.Rect(10, 0, 300, 40)
         self.input_rect.bottomleft = (5, pygame.display.get_surface().get_height() - 5)
-        self.input_active = False
         self.cntd_airports = []
         print(f"Character initial airport: {initial_airport.ident}")
 
     def handle_input(self, event: pygame.event.Event, airports: list[Airport]):
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if self.input_rect.collidepoint(event.pos):
-                self.input_active = not self.input_active
-            else:
-                self.input_active = False
-
-        elif event.type == pygame.KEYDOWN and self.input_active:
+        if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN:
                 self.input_icao(airports)
             elif event.key == pygame.K_BACKSPACE:
                 self.input_text = self.input_text[:-1]
             else:
-                self.input_text += event.unicode.upper()
+                if not event.unicode.isspace():
+                    self.input_text += event.unicode.upper()
 
     def aftermove_airport(self, new_airport: Airport):
         self.current_airport = new_airport
@@ -54,10 +48,7 @@ class Character:
         renderer.draw_circle((0, 255, 0), world_pos, 0.004)
 
         #input box
-        if self.input_active:
-            bg_color = pygame.Color(230,200,200)
-        else:
-            bg_color = pygame.Color(200,200,200)
+        bg_color = pygame.Color(200,200,200)
 
         pygame.draw.rect(renderer.surface,bg_color,self.input_rect)
         input_text = self.font.render(f'Enter ICAO: {self.input_text}', True, (0,0,0))

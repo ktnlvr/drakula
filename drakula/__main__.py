@@ -1,5 +1,3 @@
-from math import pi, tau
-
 import dotenv
 import pygame
 
@@ -7,10 +5,8 @@ from .game import MapScene
 from .db import Database, GameDatabaseFacade
 from .state import GameState
 from .renderer import Renderer
-from . import Character, airport_icao
-from pygame.time import Clock
+from .character import Character
 
-GRAPH_PRUNE_LEN = 10
 
 def main(*args, **kwargs):
     db = Database()
@@ -28,8 +24,8 @@ def main(*args, **kwargs):
 
     scene = MapScene()
 
-    character = Character(airports[0])#start at the first airport
-    clock = Clock()
+    character = Character(airports[0])  # start at the first airport
+    clock = pygame.time.Clock()
 
     running = True
     while running:
@@ -60,6 +56,7 @@ def main(*args, **kwargs):
 
     pygame.quit()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     dotenv.load_dotenv()
     main()

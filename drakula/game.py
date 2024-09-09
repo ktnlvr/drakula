@@ -68,7 +68,7 @@ class MapScene(Scene):
                         tau * i / 360,
                         sun_lat,
                         sun_lon,
-                    )
+                    ) / (tau / 8)
                 points.append(((i + 180) / 360, px))
 
             for i in range(len(points) - 1):

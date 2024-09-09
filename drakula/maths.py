@@ -60,14 +60,14 @@ def geodesic_to_3d_pos(
 
 # https://celestialprogramming.com/snippets/terminator.html
 def solar_terminator_rad_from_gp(longitude: Rad, sun_lat: Rad, sun_lon: Rad) -> float:
-    return atan(-cos(longitude - sun_lon) / tan(sun_lat))
+    return atan(cos(longitude - sun_lon) / tan(sun_lat))
 
 
 def to_julian_datetime(date: datetime.datetime) -> float:
     return (
         date.toordinal()
         + (date.hour * 60 * 60 + date.minute * 60 + date.second) / (24 * 60 * 60)
-        + 1721424.375
+        + 1721424.5
     )
 
 

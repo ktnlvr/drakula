@@ -27,7 +27,7 @@ class GameState:
                 graph[i].add(j)
                 graph[j].add(i)
 
-        self.graph = defaultdict(list)
+        self.graph: dict[int, list[int]] = defaultdict(list)
         for vert in graph:
             assert vert not in self.graph[vert]
 
@@ -54,7 +54,12 @@ class GameState:
     def distance_between(self, idx0: int, idx1: int) -> float:
         if idx1 > idx0:
             idx0, idx1 = idx1, idx0
-        return self._distance_cache.get((idx0, idx1)) or nan
+        pair = (idx0, idx1)
+        if pair in self._distance_cache:
+            p0 = self.airports[idx0].position
+            p1 = self.airports[idx1].position
+            self._distance_cache[pair] = distance(p0, p1).kilometers
+        return self._distance_cache[pair]
 
     def add_hours(self, hours: int):
         self.timestamp += datetime.timedelta(hours=hours)

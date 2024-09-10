@@ -1,16 +1,15 @@
-from collections import defaultdict
-
 import dotenv
 import pygame
-from pygame import VIDEORESIZE
 import numpy as np
-from array import array
+
 import moderngl
+from datetime import datetime
 from pygame._sdl2 import Window
+from pygame import VIDEORESIZE
 
 from drakula.db import Database, GameDatabaseFacade
 from drakula.state import GameState
-from drakula.utils import pairs
+from drakula.utils import pairs, load_shader
 from drakula.maths import angles_to_world_pos, geodesic_to_3d_pos, delaunay_triangulate_points
 
 GRAPH_PRUNE_LEN = 10
@@ -31,88 +30,64 @@ def main(*args, **kwargs):
 
     state = GameState(airports)
 
-
-
     pygame.init()
     pygame.display.set_caption("Dracula")
     icon = pygame.image.load("./vampire.png")
     pygame.display.set_icon(icon)
 
-    screen_size = np.array([1920, 1080])
+    screen_info = pygame.display.Info()
+
+    full_width = screen_info.current_w
+    full_height = screen_info.current_h
+    display = (full_width, full_height)
     # TODO: use the dimensions of the actual screen
-    screen = pygame.display.set_mode((2040, 1020), pygame.OPENGL | pygame.RESIZABLE | pygame.HWSURFACE | pygame.DOUBLEBUF)
-    Window.from_display_module().maximize()
-    ctx= moderngl.create_context()
-    clock = pygame.time.Clock()
+    screen = pygame.display.set_mode(display, pygame.OPENGL | pygame.RESIZABLE | pygame.HWSURFACE | pygame.DOUBLEBUF)
+
+
     mapx = 0
 
 
+    ctx = moderngl.create_context()
 
-    quad_buffer = ctx.buffer(data=array('f', [
-        # position (x, y), uv coords (x, y)
-        -1.0, 1.0, 0.0, 0.0,  # topleft
-        1.0, 1.0, 1.0, 0.0,  # topright
-        -1.0, -1.0, 0.0, 1.0,  # bottomleft
-        1.0, -1.0, 1.0, 1.0,  # bottomright
-    ]))
+    pygame_surface = pygame.Surface(display, flags=pygame.SRCALPHA)
 
-    vert_shader = '''
-    #version 330 core
+    texture = ctx.texture(display, 4)
 
-    in vec2 vert;
-    in vec2 texcoord;
-    out vec2 uvs;
+    vertex_shader = load_shader('drakula/shaders/vertex_shader.glsl')
+    fragment_shader = load_shader('drakula/shaders/fragment_shader.glsl')
 
-    void main() {
-        uvs = texcoord;
-        gl_Position = vec4(vert, 0.0, 1.0);
-    }
-    '''
+    program = ctx.program(vertex_shader=vertex_shader, fragment_shader=fragment_shader)
 
-    frag_shader = '''
-    #version 330 core
-
-    uniform sampler2D tex;
-    uniform float time;
-
-    in vec2 uvs;
-    out vec4 f_color;
-
-    void main() {
-        vec2 sample_pos = vec2(uvs.x + sin(uvs.y * 10 + time * 0.01) * 0.1, uvs.y);
-        f_color = vec4(texture(tex, sample_pos).rg, texture(tex, sample_pos).b * 1.5, 1.0);
-    }
-    '''
-
-    program = ctx.program(vertex_shader=vert_shader, fragment_shader=frag_shader)
-    render_object = ctx.vertex_array(program, [(quad_buffer, '2f 2f', 'vert', 'texcoord')])
+    vertices = np.array([
+        # x,    y,
+        -1.0, -1.0,
+        1.0, -1.0,
+        -1.0, 1.0,
+        1.0, 1.0,
+    ], dtype='f4')
+    vbo = ctx.buffer(vertices)
+    vao = ctx.simple_vertex_array(program, vbo, 'position')
 
 
-    def surf_to_texture(surf):
-        tex = ctx.texture(surf.get_size(), 4)
-        tex.filter = (moderngl.NEAREST, moderngl.NEAREST)
-        tex.swizzle = 'BGRA'
-        tex.write(surf.get_view('1'))
-        return tex
+    clock = pygame.time.Clock()
+    start_time = pygame.time.get_ticks()
+    last_time = start_time
+    frame_count = 0
 
 
-    t = 0
 
-    running = True
-    while running:
+    while True:
         map = pygame.image.load("map.png")
-        screen.fill((255, 255, 255))
-        screen.blit(pygame.transform.scale(map, (1920, 1080)), (0,0))
-
-        t += 1
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.display.quit()
+                pygame.quit()
             if event.type == VIDEORESIZE:
-                screen = pygame.display.set_mode(
-                    event.dict['size'], pygame.OPENGL | pygame.RESIZABLE | pygame.HWSURFACE)
-                screen.blit(pygame.transform.scale(map, event.dict['size']), (0, 0))
+                screen_info = pygame.display.Info()
+                full_width = screen_info.current_w
+                full_height = screen_info.current_h
+                display = (full_width, full_height)
+                screen = pygame.display.set_mode(display, pygame.OPENGL | pygame.RESIZABLE | pygame.HWSURFACE)
+                pygame_surface.blit(pygame.transform.scale(map, display), (0, 0))
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
                     mapx += 100
@@ -122,21 +97,52 @@ def main(*args, **kwargs):
                     Window.from_display_module().borderless = not Window.from_display_module().borderless
                 if event.key == pygame.K_2:
                     Window.from_display_module().maximize()
-        mapx %= screen_size[0]
-        screen.blit(map, (mapx, 0))
+
+        current_time = pygame.time.get_ticks()
+        time = (current_time - start_time) / 1000.0
+        delta_time = (current_time - last_time) / 1000.0
+        last_time = current_time
+
+        mouse_pos = pygame.mouse.get_pos()
+        mouse_buttons = pygame.mouse.get_pressed()
+
+        now = datetime.now()
+        year, month, day = now.year, now.month, now.day
+        seconds_since_midnight = (now - now.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
+
+        active_uniforms = program._members
+        if 'iResolution' in active_uniforms:
+            program['iResolution'].value = (*display, 1.0)
+        if 'iTime' in active_uniforms:
+            program['iTime'].value = time
+        if 'iTimeDelta' in active_uniforms:
+            program['iTimeDelta'].value = delta_time
+        if 'iFrame' in active_uniforms:
+            program['iFrame'].value = frame_count
+        if 'iMouse' in active_uniforms:
+            program['iMouse'].value = (mouse_pos[0], display[1] - mouse_pos[1], mouse_buttons[0], mouse_buttons[2])
+        if 'iDate' in active_uniforms:
+            program['iDate'].value = (year, month, day, seconds_since_midnight)
+
+        mapx %= display[0]
+
+        pygame_surface.fill((0, 0, 0, 255))
+
+        map = pygame.image.load("map.png")
+        pygame_surface.blit(map, (mapx, 0))
         if mapx > 0:
-            screen.blit(map, (mapx - screen_size[0], 0))
+            pygame_surface.blit(map, (mapx - display[0], 0))
         if mapx < 0:
-            screen.blit(map, (mapx + screen_size[0], 0))
+            pygame_surface.blit(map, (mapx + display[0], 0))
 
         for i, js in state.graph.items():
             airport = airports[i]
-            a = screen_size * angles_to_world_pos(*airport.position)
-            a[0] = (a[0] + mapx) % screen_size[0]
+            a = display * angles_to_world_pos(*airport.position)
+            a[0] = (a[0] + mapx) % display[0]
             for j in js:
                 connection = airports[j]
-                b = screen_size * angles_to_world_pos(*connection.position)
-                b[0] = (b[0] + mapx) % screen_size[0]
+                b = display * angles_to_world_pos(*connection.position)
+                b[0] = (b[0] + mapx) % display[0]
 
 
                 # because of the signed distance, the calculations are different for case b[0] > a[0]
@@ -146,29 +152,29 @@ def main(*args, **kwargs):
                 if b[0] < a[0]:
                     continue
 
-                if should_wrap_coordinate(a[0], b[0], screen_size[0]):
-                    pygame.draw.line(screen, (255, 200, 0), (a[0], a[1]), (-screen_size[0] + b[0], b[1]), 1)
-                    pygame.draw.line(screen, (255, 200, 0), (b[0], b[1]), (screen_size[0] + a[0], a[1]), 1)
+                if should_wrap_coordinate(a[0], b[0], display[0]):
+                    pygame.draw.line(pygame_surface, (255, 200, 0), (a[0], a[1]), (-display[0] + b[0], b[1]), 1)
+                    pygame.draw.line(pygame_surface, (255, 200, 0), (b[0], b[1]), (display[0] + a[0], a[1]), 1)
                 else:
-                    pygame.draw.line(screen, (0, 255, 0), a, b, 1)
+                    pygame.draw.line(pygame_surface, (0, 255, 0), a, b, 1)
 
         for airport in airports:
             p = angles_to_world_pos(airport.latitude_deg, airport.longitude_deg)
-            p *= screen_size
-            p[0] = (p[0] + mapx) % screen_size[0]
-            pygame.draw.circle(screen, (255, 0, 0), p, 5.)
+            p *= display
+            p[0] = (p[0] + mapx) % display[0]
+            pygame.draw.circle(pygame_surface, (255, 0, 0), p, 5.)
 
-        frame_tex = surf_to_texture(screen)
-        frame_tex.use(0)
-        program['tex'] = 0
-        program['time'] = t
-        render_object.render(mode=moderngl.TRIANGLE_STRIP)
+        texture.write(pygame_surface.get_view('1'))
+        ctx.clear(color=(0.0, 0.0, 0.0, 1.0))
 
+        program['texture0'] = 0
+        texture.use(0)
+        program['iResolution'].value = (*display, 1.0)
 
+        vao.render(moderngl.TRIANGLE_STRIP)
         pygame.display.flip()
-        frame_tex.release()
-
         clock.tick(60)
+        frame_count += 1
 
 if __name__ == '__main__':
     main()

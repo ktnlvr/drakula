@@ -1,24 +1,29 @@
 import datetime
-from math import pi, tau
+from logging import basicConfig as config_logging, INFO
 
 import dotenv
 import pygame
 
+from .character import Character
+from .db import create_database_facade
 from .debug import DEBUG_LAYER_TIMESKIP, is_debug_layer_enabled
+from .debug import debug_layers
 from .game import MapScene
-from .db import Database, GameDatabaseFacade
-from .state import GameState
+from .logging import logger
 from .renderer import Renderer
+from .state import GameState
 
-GRAPH_PRUNE_LEN = 10
 
 def main(*args, **kwargs):
-    db = Database()
-    game = GameDatabaseFacade(db)
+    logger.info("Setting up the database")
 
+    game = create_database_facade()
+
+    logger.info("Fetching airports")
     airports = list()
-    for continent in game.continents:
+    for continent in game._continents:
         airports.extend(game.fetch_random_airports(4, continent))
+    logger.info(f"Got {len(airports)} airports")
 
     state = GameState(airports)
 
@@ -28,9 +33,14 @@ def main(*args, **kwargs):
 
     scene = MapScene(state)
 
+    character = Character(airports[0])
+    clock = pygame.time.Clock()
+
     running = True
     while running:
         renderer.begin()
+
+        scene = scene.next_scene
         scene.render(renderer)
 
         for event in pygame.event.get():
@@ -42,15 +52,27 @@ def main(*args, **kwargs):
                     state.timestamp += datetime.timedelta(hours=1, minutes=1, days=21)
                     print(state.timestamp)
 
+            character.handle_input(event, airports)
             if renderer.handle_event(event):
                 continue
-            if scene.handle_event(event):
+            if scene.handle_event(renderer, event):
                 continue
 
+        scene.update(state, character)
+        character.render(renderer, airports)
+
+        clock.tick(30)
+
         renderer.end()
-        scene = scene.next_scene
+
+    pygame.quit()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     dotenv.load_dotenv()
+    config_logging(level=INFO)
+    if layers := debug_layers():
+        logger.info(
+            f"{len(layers)} debug layers enabled: {', '.join((layer.lower() for layer in layers))}"
+        )
     main()

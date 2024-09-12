@@ -4,20 +4,19 @@ from typing import Optional
 import pygame
 
 from .renderer import Renderer
-from .state import GameState
+
 
 class Scene(ABC):
     @property
-    def previous_scene(self) -> Optional['Scene']:
+    def previous_scene(self) -> Optional["Scene"]:
         return None
 
     @abstractmethod
-    def render(self, renderer: Renderer):
-        ...
+    def render(self, renderer: Renderer): ...
 
     @property
-    def next_scene(self) -> 'Scene':
+    def next_scene(self) -> "Scene":
         return self
-    
-    def handle_event(self, _: pygame.event.Event) -> bool:
+
+    def handle_event(self, renderer: Renderer, _: pygame.event.Event) -> bool:
         return False

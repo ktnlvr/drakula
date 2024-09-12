@@ -1,25 +1,42 @@
 from typing import Tuple
+
 import numpy as np
 import pygame
 
 Coordinate = Tuple[float, float]
 
+
 class Renderer:
     def __init__(self, screen_size: Tuple[int, int]):
-        self.surface = pygame.display.set_mode(screen_size)
+        self.surface = pygame.display.set_mode(screen_size, pygame.RESIZABLE)
 
     def blit(self, source: pygame.Surface, at: Coordinate):
         self.surface.blit(source, self.project(at))
 
     def begin(self):
         self.surface.fill((255, 0, 255))
-    
-    def draw_line(self, color: pygame.Color, begin: Coordinate, end: Coordinate, width: float = 0):
-        pygame.draw.line(self.surface, color, self.project(begin), self.project(end), int(max(width * self.minimal_scalar, 1)))
-    
-    def draw_line_wrapping(self, color: pygame.Color, begin: Coordinate, end: Coordinate, width: float = 0, wrap_around: float = 1.):
+
+    def draw_line(
+        self, color: pygame.Color, begin: Coordinate, end: Coordinate, width: float = 0
+    ):
+        pygame.draw.line(
+            self.surface,
+            color,
+            self.project(begin),
+            self.project(end),
+            int(max(width * self.minimal_scalar, 1)),
+        )
+
+    def draw_line_wrapping(
+        self,
+        color: pygame.Color,
+        begin: Coordinate,
+        end: Coordinate,
+        width: float = 0,
+        wrap_around: float = 1.0,
+    ):
         a, b = begin, end
-        
+
         if b[0] < a[0]:
             a, b = b, a
 
@@ -35,7 +52,9 @@ class Renderer:
             self.draw_line(color, begin, end, width)
 
     def draw_circle(self, color: pygame.Color, at: Coordinate, radius: float):
-        pygame.draw.circle(self.surface, color, self.project(at), radius * self.minimal_scalar)
+        pygame.draw.circle(
+            self.surface, color, self.project(at), radius * self.minimal_scalar
+        )
 
     def end(self):
         pygame.display.update()
@@ -44,14 +63,17 @@ class Renderer:
         """
         Handle all the events relevant to the renderer.
 
-        :return: False if the event was not handled, True otherwise
+        :return: True if the event was consumed, False otherwise
         """
+        if event.type == pygame.VIDEORESIZE:
+            screen_size = (event.w, event.h)
+            self.surface = pygame.display.set_mode(screen_size, pygame.RESIZABLE)
         return False
 
     @property
     def size(self) -> np.ndarray[(2,)]:
         return np.array([self.surface.get_width(), self.surface.get_height()])
-    
+
     @property
     def minimal_scalar(self) -> np.float32:
         return min(self.surface.get_width(), self.surface.get_height())

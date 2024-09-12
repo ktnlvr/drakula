@@ -36,7 +36,6 @@ class Character:
                 self.input_text = self.input_text[:-1]
                 return CharacterInputResult.Accepted
             elif event.key == pygame.K_KP_ENTER:
-                # TODO: handle the current airport using an index
                 game_state.trap_location(self.current_location)
             else:
                 if not event.unicode.isspace():

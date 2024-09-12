@@ -3,12 +3,12 @@ import pygame
 from numpy.random import choice
 from pygame.time import Clock
 
-from drakula.scene import Scene
-from . import Character, CharacterInputResult
+from .character import Character, CharacterInputResult
 from .db import Database, GameDatabaseFacade
 from .dracula import DraculaBrain
 from .game import MapScene
 from .renderer import Renderer
+from .scene import Scene
 from .state import GameState
 
 
@@ -25,8 +25,8 @@ def main(*args, **kwargs):
     renderer = Renderer((1280, 644))
 
     pygame.init()
-    pygame.display.set_caption('The Hunt for Dracula')
-    icon = pygame.image.load('vampire.png')
+    pygame.display.set_caption("The Hunt for Dracula")
+    icon = pygame.image.load("vampire.png")
     pygame.display.set_icon(icon)
 
     character = Character(0)

@@ -2,7 +2,7 @@ from math import tau
 
 import pygame
 
-from . import Character
+from .character import Character
 from .debug import DEBUG_LAYER_SHOW_SOLAR_TERMINATOR, is_debug_layer_enabled
 from .maths import angles_to_world_pos, solar_terminator_rad
 from .renderer import Renderer
@@ -68,12 +68,15 @@ class MapScene(Scene):
         bg_color = pygame.Color(200, 200, 200)
 
         pygame.draw.rect(renderer.surface, bg_color, input_rect)
-        input_text = font.render(f"Enter ICAO: {self.character.input_text}", True, (0, 0, 0))
-        renderer.surface.blit(
-            input_text, (input_rect.x + 5, input_rect.y + 5)
+        input_text = font.render(
+            f"Enter ICAO: {self.character.input_text}", True, (0, 0, 0)
         )
+        renderer.surface.blit(input_text, (input_rect.x + 5, input_rect.y + 5))
 
-        connected_airports = ",".join(self.state.airports[i].ident for i in self.state.graph[self.character.current_location])
+        connected_airports = ",".join(
+            self.state.airports[i].ident
+            for i in self.state.graph[self.character.current_location]
+        )
         info_str = f" Airport: {current_airport.name}  |  ICAO: {current_airport.ident}  |  Position:{current_airport.position}  | Connected Airports:{connected_airports}"
         info_text = font.render(info_str, True, (255, 255, 255))
 

@@ -43,14 +43,3 @@ class Character:
                     self.input_text += event.unicode.upper()
                     return CharacterInputResult.Accepted
         return CharacterInputResult.Ignored
-
-    def input_icao(self, airports: list[Airport]) -> int:
-        """
-        :param airports:
-        :return: True if the player has moved, False otherwise
-        """
-        icao_code = self.input_text.strip()
-        new_airport = airport_icao(airports, icao_code)
-        # TODO: empty the string elsewhere
-        self.input_text = ""
-        return bool(new_airport)

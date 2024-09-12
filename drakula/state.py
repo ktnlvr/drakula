@@ -25,7 +25,6 @@ class AirportState:
 
 
 class GameState:
-
     def __init__(self, airports: list[Airport], timestamp: datetime.datetime = None):
         if timestamp is None:
             timestamp = datetime.datetime.now()

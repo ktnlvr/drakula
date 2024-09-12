@@ -29,11 +29,11 @@ def main(*args, **kwargs):
     icon = pygame.image.load('vampire.png')
     pygame.display.set_icon(icon)
 
-    scene: Scene = MapScene(state)
+    character = Character(0)
+    scene: Scene = MapScene(state, character)
 
     brain = DraculaBrain()
 
-    character = Character(airports[0])
     clock = Clock()
 
     running = True
@@ -62,9 +62,7 @@ def main(*args, **kwargs):
 
         scene = scene.next_scene()
 
-        scene.update(state, character)  # Updates current pos
         scene.render(renderer)
-        character.render(renderer, airports)
         renderer.end()
 
         pygame.display.flip()

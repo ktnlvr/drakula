@@ -17,10 +17,10 @@ class Character:
         self.cntd_airports = []
         print(f"Character initial airport: {initial_airport.ident}")
 
-    def handle_input(self, event: pygame.event.Event, airports: list[Airport]):
+    def handle_input(self, event: pygame.event.Event, airports: list[Airport]) -> bool:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN:
-                self.input_icao(airports)
+                return self.input_icao(airports)
             elif event.key == pygame.K_BACKSPACE:
                 self.input_text = self.input_text[:-1]
             else:
@@ -32,11 +32,18 @@ class Character:
         print(f"Character moved to airport: {new_airport.ident}")
 
     def input_icao(self, airports: list[Airport]):
+        """
+        :param airports:
+        :return: True if the player has moved, False otherwise
+        """
         icao_code = self.input_text.strip()
         new_airport = airport_icao(airports,icao_code)
+        self.input_text = ""
         if new_airport:
             self.aftermove_airport(new_airport)
-        self.input_text =""
+            return True
+        else:
+            return False
 
     def get_cntd_airports(self, cntd_airports):
         self.cntd_airports = cntd_airports

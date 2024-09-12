@@ -17,7 +17,7 @@ GRAPH_PRUNE_LEN = 10
 def main(*args, **kwargs):
     db = Database()
     game = GameDatabaseFacade(db)
-
+    moves = 0
     airports = list()
     for continent in game.continents:
         airports.extend(game.fetch_random_airports(4, continent))
@@ -46,13 +46,15 @@ def main(*args, **kwargs):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            character.handle_input(event, airports)
+            if character.handle_input(event, airports):
+                state.add_timer_for_traps()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
-                    print(moves)
                     new_pos = choice([x for _, x in moves], 1, p=[p for p, _ in moves])[0]
                     current_dracula_pos = new_pos
                     trail.append(current_dracula_pos)
+                if event.key == pygame.K_KP_ENTER:
+                    state.trap_current_location(state.get_index(character.current_airport.ident))
             if renderer.handle_event(event):
                 continue
             if scene.handle_event(event):

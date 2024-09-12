@@ -3,7 +3,7 @@ from math import tau
 from .utils import pairs
 from .scene import Scene
 from .renderer import Renderer
-from .state import GameState
+from .state import GameState, AirportStatus
 from .maths import angles_to_world_pos, solar_terminator_rad
 from .debug import DEBUG_LAYER_SHOW_SOLAR_TERMINATOR, is_debug_layer_enabled
 
@@ -44,9 +44,14 @@ class MapScene(Scene):
             for i in range(len(points) - 1):
                 renderer.draw_line(0, points[i], points[i + 1], 0.001)
 
-        for airport in self.state.airports:
+        for state in self.state.states:
+            airport = state.airport
             p = angles_to_world_pos(airport.latitude_deg, airport.longitude_deg)
-            renderer.draw_circle((255, 0, 0), p, 0.01)
+            if state.status == AirportStatus.TRAPPED:
+                print("Going to render yellow circle for traps")
+                renderer.draw_circle((255,255,0),p,0.01)
+            else:
+                renderer.draw_circle((255, 0, 0), p, 0.01)
 
         super().render(state)
 

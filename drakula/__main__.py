@@ -11,8 +11,6 @@ from .game import MapScene
 from .renderer import Renderer
 from .state import GameState
 
-GRAPH_PRUNE_LEN = 10
-
 
 def main(*args, **kwargs):
     db = Database()
@@ -27,6 +25,9 @@ def main(*args, **kwargs):
     renderer = Renderer((1280, 644))
 
     pygame.init()
+    pygame.display.set_caption('The Hunt for Dracula')
+    icon = pygame.image.load('vampire.png')
+    pygame.display.set_icon(icon)
 
     scene: Scene = MapScene(state)
 

@@ -66,8 +66,12 @@ class Renderer:
         :return: True if the event was consumed, False otherwise
         """
         if event.type == pygame.VIDEORESIZE:
+            # XXX: some window managers send multiple resize events (KDE and maybe windows),
+            # after which pygame recreates the window. Due to multiple events smooth resize
+            # experience is __impossible__. Handle that somehow?
             screen_size = (event.w, event.h)
             self.surface = pygame.display.set_mode(screen_size, pygame.RESIZABLE)
+            return True
         return False
 
     @property

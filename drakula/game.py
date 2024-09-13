@@ -21,9 +21,12 @@ class MapScene(Scene):
 
         self.state = state
         self.world_map = pygame.image.load("map.png")
+
         self.horizontal_scroll = 0
 
     def render(self, renderer: Renderer):
+        self.world_map = pygame.transform.scale(self.world_map, renderer.size)
+
         self.horizontal_scroll %= renderer.size[0]
         renderer.surface.blit(self.world_map, (self.horizontal_scroll, 0))
         if self.horizontal_scroll > 0:
@@ -77,8 +80,6 @@ class MapScene(Scene):
         character.get_cntd_airports(cntd_airports)
 
     def handle_event(self, renderer: Renderer, event: Event) -> bool:
-        if event.type == pygame.VIDEORESIZE:
-            self.world_map = pygame.transform.scale(self.world_map, renderer.size)
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT:
                 self.horizontal_scroll += 100

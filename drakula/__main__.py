@@ -36,20 +36,18 @@ def main(*args, **kwargs):
     pygame.display.set_icon(icon)
 
     screen_info = pygame.display.Info()
+    display = (int(screen_info.current_w), int(screen_info.current_h))
+    screen = pygame.display.set_mode(display, pygame.OPENGL | pygame.RESIZABLE | pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.FULLSCREEN)
+    fullscreen = True
 
-    full_width = screen_info.current_w
-    full_height = screen_info.current_h
-    display = (full_width, full_height)
-    # TODO: use the dimensions of the actual screen
-    screen = pygame.display.set_mode(display, pygame.OPENGL | pygame.RESIZABLE | pygame.HWSURFACE | pygame.DOUBLEBUF)
-
-
+    map = pygame.transform.scale(pygame.image.load("map.png"), display)
     mapx = 0
 
 
     ctx = moderngl.create_context()
 
     pygame_surface = pygame.Surface(display, flags=pygame.SRCALPHA)
+    pygame_surface.blit(map, (0, 0))
 
     texture = ctx.texture(display, 4)
 
@@ -75,28 +73,34 @@ def main(*args, **kwargs):
     frame_count = 0
 
 
-
-    while True:
-        map = pygame.image.load("map.png")
+    running = True
+    while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.quit()
-            if event.type == VIDEORESIZE:
-                screen_info = pygame.display.Info()
-                full_width = screen_info.current_w
-                full_height = screen_info.current_h
-                display = (full_width, full_height)
-                screen = pygame.display.set_mode(display, pygame.OPENGL | pygame.RESIZABLE | pygame.HWSURFACE)
-                pygame_surface.blit(pygame.transform.scale(map, display), (0, 0))
+                running = False
+            #if event.type == VIDEORESIZE:
+            #    pygame_scaled_surface = pygame.Surface(display)
+            #    pygame.transform.scale(pygame_surface, display, pygame_scaled_surface)
+            #    pygame_surface.blit(pygame_scaled_surface, (0, 0))
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
                     mapx += 100
                 if event.key == pygame.K_RIGHT:
                     mapx -= 100
                 if event.key == pygame.K_1:
-                    Window.from_display_module().borderless = not Window.from_display_module().borderless
-                if event.key == pygame.K_2:
-                    Window.from_display_module().maximize()
+                    if fullscreen:
+                        fullscreen = False
+                        screen_info = pygame.display.Info()
+                        display = (int(screen_info.current_w * 0.8), int(screen_info.current_h * 0.8))
+                        screen = pygame.display.set_mode(display, pygame.OPENGL | pygame.RESIZABLE | pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.SCALED)
+                    else:
+                        fullscreen = True
+                        screen = pygame.display.set_mode(display, pygame.OPENGL | pygame.RESIZABLE | pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.FULLSCREEN)
+
+                        #screen_info = pygame.display.Info()
+                        #display = (screen_info.current_w,screen_info.current_h)
+
+
 
         current_time = pygame.time.get_ticks()
         time = (current_time - start_time) / 1000.0
@@ -127,8 +131,6 @@ def main(*args, **kwargs):
         mapx %= display[0]
 
         pygame_surface.fill((0, 0, 0, 255))
-
-        map = pygame.image.load("map.png")
         pygame_surface.blit(map, (mapx, 0))
         if mapx > 0:
             pygame_surface.blit(map, (mapx - display[0], 0))
@@ -176,5 +178,6 @@ def main(*args, **kwargs):
         clock.tick(60)
         frame_count += 1
 
+    pygame.quit()
 if __name__ == '__main__':
     main()

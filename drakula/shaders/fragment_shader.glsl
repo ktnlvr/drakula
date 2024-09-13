@@ -16,7 +16,7 @@ void main() {
 }
 
 //Start of shader
-float Falloff = 0.4;
+float Falloff = 0.3;
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {

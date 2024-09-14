@@ -36,9 +36,9 @@ def main(*args, **kwargs):
     pygame.display.set_icon(icon)
 
     screen_info = pygame.display.Info()
-    display = (int(screen_info.current_w), int(screen_info.current_h))
-    screen = pygame.display.set_mode(display, pygame.OPENGL | pygame.RESIZABLE | pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.FULLSCREEN)
-    fullscreen = True
+    display = (int(screen_info.current_w * 0.9), int(screen_info.current_h * 0.9))
+    screen = pygame.display.set_mode(display, pygame.OPENGL | pygame.RESIZABLE | pygame.HWSURFACE | pygame.DOUBLEBUF)
+    fullscreen = False
 
     map = pygame.transform.scale(pygame.image.load("map.png"), display)
     mapx = 0
@@ -79,9 +79,6 @@ def main(*args, **kwargs):
             if event.type == pygame.QUIT:
                 running = False
             #if event.type == VIDEORESIZE:
-            #    pygame_scaled_surface = pygame.Surface(display)
-            #    pygame.transform.scale(pygame_surface, display, pygame_scaled_surface)
-            #    pygame_surface.blit(pygame_scaled_surface, (0, 0))
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
                     mapx += 100
@@ -90,16 +87,10 @@ def main(*args, **kwargs):
                 if event.key == pygame.K_1:
                     if fullscreen:
                         fullscreen = False
-                        screen_info = pygame.display.Info()
-                        display = (int(screen_info.current_w * 0.8), int(screen_info.current_h * 0.8))
-                        screen = pygame.display.set_mode(display, pygame.OPENGL | pygame.RESIZABLE | pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.SCALED)
+                        screen = pygame.display.set_mode(display, pygame.OPENGL | pygame.RESIZABLE | pygame.HWSURFACE | pygame.DOUBLEBUF)
                     else:
                         fullscreen = True
                         screen = pygame.display.set_mode(display, pygame.OPENGL | pygame.RESIZABLE | pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.FULLSCREEN)
-
-                        #screen_info = pygame.display.Info()
-                        #display = (screen_info.current_w,screen_info.current_h)
-
 
 
         current_time = pygame.time.get_ticks()

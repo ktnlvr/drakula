@@ -1,3 +1,5 @@
+from trace import Trace
+
 from .character import Character
 
 import pygame
@@ -8,7 +10,7 @@ from .maths import (
 )
 from .renderer import Renderer
 from .scene import Scene
-from .state import GameState
+from .state import GameState, AirportStatus
 
 
 class MapScene(Scene):
@@ -53,6 +55,7 @@ class MapScene(Scene):
             p = [(p[0] + normalized_horizontal_scroll) % 1.0, p[1]]
             renderer.draw_circle((255, 0, 0), p, 0.01)
 
+        self.draw_traps(renderer)
         font = pygame.font.Font(None, 22)
         input_rect = pygame.Rect(10, 0, 300, 40)
         input_rect.bottomleft = (5, pygame.display.get_surface().get_height() - 5)
@@ -86,6 +89,15 @@ class MapScene(Scene):
         renderer.surface.blit(info_text, (padding, padding))
 
         super().render(renderer)
+
+    def draw_traps(self,renderer: Renderer):
+        for port in self.state.states:
+            current_airport = port.airport
+            current_airport_state = port.status
+            if current_airport_state == AirportStatus.TRAPPED:
+                current_airport_pos = current_airport.position
+                world_pos = angles_to_world_pos(*current_airport_pos)
+                renderer.draw_circle((255, 255, 0), world_pos, 0.01)
 
     def handle_event(self, event: Event) -> bool:
         if event.type == pygame.KEYDOWN:

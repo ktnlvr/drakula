@@ -1,10 +1,13 @@
 import dotenv
 import pygame
+from numpy.random import choice
 
-from .character import Character
 from .db import create_database_facade
+from .character import Character, CharacterInputResult
+from .dracula import DraculaBrain
 from .game import MapScene
 from .renderer import Renderer
+from .scene import Scene
 from .state import GameState
 
 
@@ -17,15 +20,17 @@ def main(*args, **kwargs):
 
     state = GameState(airports)
 
+    renderer = Renderer((1280, 644))
+
     pygame.init()
-    pygame.display.set_caption("Dracula")
-    icon = pygame.image.load("./vampire.png")
+    pygame.display.set_caption("The Hunt for Dracula")
+    icon = pygame.image.load("vampire.png")
     pygame.display.set_icon(icon)
 
-    renderer = Renderer()
+    character = Character(0)
+    scene: Scene = MapScene(state, character)
 
-    scene = MapScene(state)
-    character = Character(airports[0])
+    brain = DraculaBrain()
 
     running = True
     while running:
@@ -34,9 +39,20 @@ def main(*args, **kwargs):
         scene = scene.next_scene
         scene.render(renderer)
 
+        moves = brain.list_moves(state, state.dracula_location)
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            if result := character.handle_input(event, state):
+                if result == CharacterInputResult.Moved:
+                    state.add_timer_for_traps()
+                    # TODO: make this less confusing
+                    state.dracula_location = choice(
+                        [x for _, x in moves], 1, p=[p for p, _ in moves]
+                    )[0]
+                    state.dracula_trail += [state.dracula_location]
+                continue
 
             character.handle_input(event, airports)
             if renderer.handle_event(event):
@@ -44,14 +60,12 @@ def main(*args, **kwargs):
             if scene.handle_event(renderer, event):
                 continue
 
-        scene.update(state, character)
-        character.render(renderer, airports)
-
+        scene = scene.next_scene
         renderer.end()
 
     pygame.quit()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     dotenv.load_dotenv()
     main()

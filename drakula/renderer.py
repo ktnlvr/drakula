@@ -9,12 +9,23 @@ from .utils import load_shader
 
 Coordinate = Tuple[float, float]
 
-PYGAME_MODE_FLAGS = pygame.OPENGL | pygame.RESIZABLE | pygame.HWSURFACE | pygame.DOUBLEBUF
+
+def should_wrap_coordinate(a: float, b: float, span: float) -> bool:
+    signed_distance = b - a
+    wrapped_signed_distance = span - signed_distance
+    return abs(wrapped_signed_distance) < abs(signed_distance)
+
+
+PYGAME_MODE_FLAGS = (
+        pygame.OPENGL | pygame.RESIZABLE | pygame.HWSURFACE | pygame.DOUBLEBUF
+)
 
 
 def get_screen_size():
     screen_info = pygame.display.Info()
-    return np.array(list(map(int, [screen_info.current_w * 0.9, screen_info.current_h * 0.9])))
+    return np.array(
+        list(map(int, [screen_info.current_w * 0.9, screen_info.current_h * 0.9]))
+    )
 
 
 class Renderer:
@@ -27,12 +38,16 @@ class Renderer:
         self.ctx = moderngl.create_context()
         self.screen_texture = self.ctx.texture(screen_size, 4)
 
-        self.vertex_shader = load_shader('drakula/shaders/vertex_shader.glsl')
-        self.fragment_shader = load_shader('drakula/shaders/fragment_shader.glsl')
-        self.program = self.ctx.program(vertex_shader=self.vertex_shader, fragment_shader=self.fragment_shader)
-        self._screen_quad_vertices = np.array([[-1., -1], [1., -1], [-1, 1], [1, 1]], dtype='f4')
+        self.vertex_shader = load_shader("drakula/shaders/vertex_shader.glsl")
+        self.fragment_shader = load_shader("drakula/shaders/fragment_shader.glsl")
+        self.program = self.ctx.program(
+            vertex_shader=self.vertex_shader, fragment_shader=self.fragment_shader
+        )
+        self._screen_quad_vertices = np.array(
+            [[-1.0, -1], [1.0, -1], [-1, 1], [1, 1]], dtype="f4"
+        )
         self.vbo = self.ctx.buffer(self._screen_quad_vertices)
-        self.vao = self.ctx.simple_vertex_array(self.program, self.vbo, 'position')
+        self.vao = self.ctx.simple_vertex_array(self.program, self.vbo, "position")
 
         self.clock = pygame.time.Clock()
         self.start_time = pygame.time.get_ticks()
@@ -54,17 +69,27 @@ class Renderer:
 
         now = datetime.now()
         year, month, day = now.year, now.month, now.day
-        seconds_since_midnight = (now - now.replace(hour=0, minute=0, second=0, microsecond=0)).total_seconds()
+        seconds_since_midnight = (
+                now - now.replace(hour=0, minute=0, second=0, microsecond=0)
+        ).total_seconds()
         display = get_screen_size() * 0.9
 
         mouse_pos = pygame.mouse.get_pos()
         mouse_buttons = pygame.mouse.get_pressed()
-        self.set_uniform('iResolution', [*display, 1.])
-        self.set_uniform('iTime', self.time)
-        self.set_uniform('iTimeDelta', self.delta_time)
-        self.set_uniform('iFrame', self.frame_count)
-        self.set_uniform('iMouse', (mouse_pos[0], display[1] - mouse_pos[1], mouse_buttons[0], mouse_buttons[2]))
-        self.set_uniform('iDate', (year, month, day, seconds_since_midnight))
+        self.set_uniform("iResolution", [*display, 1.0])
+        self.set_uniform("iTime", self.time)
+        self.set_uniform("iTimeDelta", self.delta_time)
+        self.set_uniform("iFrame", self.frame_count)
+        self.set_uniform(
+            "iMouse",
+            (
+                mouse_pos[0],
+                display[1] - mouse_pos[1],
+                mouse_buttons[0],
+                mouse_buttons[2],
+            ),
+        )
+        self.set_uniform("iDate", (year, month, day, seconds_since_midnight))
 
     def set_uniform(self, name, value):
         if name in self.program._members:
@@ -87,23 +112,16 @@ class Renderer:
             begin: Coordinate,
             end: Coordinate,
             width: float = 0,
-            wrap_around: float = 1.0,
+            color_if_wrap: Optional[pygame.Color] = None,
     ):
         a, b = begin, end
-
         if b[0] < a[0]:
             a, b = b, a
-
-        def should_wrap_coordinate(a: float, b: float, span: float) -> bool:
-            signed_distance = b - a
-            wrapped_signed_distance = span - signed_distance
-            return abs(wrapped_signed_distance) < abs(signed_distance)
-
-        if should_wrap_coordinate(a[0], b[0], wrap_around):
-            self.draw_line(color, (a[0], a[1]), (b[0] - wrap_around, b[1]), width)
-            self.draw_line(color, (b[0], b[1]), (a[0] + wrap_around, a[1]), width)
+        if should_wrap_coordinate(a[0], b[0], 1):
+            self.draw_line(color_if_wrap or color, a, (b[0] - 1, b[1]), width)
+            self.draw_line(color_if_wrap or color, b, (a[0] + 1, a[1]), width)
         else:
-            self.draw_line(color, begin, end, width)
+            self.draw_line(color, a, b, width)
 
     def draw_circle(self, color: pygame.Color, at: Coordinate, radius: float):
         pygame.draw.circle(
@@ -111,9 +129,9 @@ class Renderer:
         )
 
     def end(self):
-        self.screen_texture.write(self.surface.get_view('1'))
+        self.screen_texture.write(self.surface.get_view("1"))
         self.screen_texture.use(0)
-        self.set_uniform('texture0', 0)
+        self.set_uniform("texture0", 0)
         self.vao.render(moderngl.TRIANGLE_STRIP)
         pygame.display.flip()
         self.last_time = self.current_time

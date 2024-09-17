@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Tuple
+from typing import Tuple, Optional
 
 import moderngl
 import numpy as np
@@ -11,12 +11,16 @@ Coordinate = Tuple[float, float]
 
 PYGAME_MODE_FLAGS = pygame.OPENGL | pygame.RESIZABLE | pygame.HWSURFACE | pygame.DOUBLEBUF
 
+
 def get_screen_size():
     screen_info = pygame.display.Info()
     return np.array(list(map(int, [screen_info.current_w * 0.9, screen_info.current_h * 0.9])))
 
+
 class Renderer:
-    def __init__(self, screen_size: Tuple[int, int]):
+    def __init__(self, screen_size: Optional[Tuple[int, int]] = None):
+        if screen_size is None:
+            screen_size = get_screen_size()
         self.screen = pygame.display.set_mode(screen_size, PYGAME_MODE_FLAGS)
         self.surface = pygame.Surface(screen_size, flags=pygame.SRCALPHA)
         self.fullscreen = False
@@ -62,13 +66,12 @@ class Renderer:
         self.set_uniform('iMouse', (mouse_pos[0], display[1] - mouse_pos[1], mouse_buttons[0], mouse_buttons[2]))
         self.set_uniform('iDate', (year, month, day, seconds_since_midnight))
 
-
     def set_uniform(self, name, value):
         if name in self.program._members:
             self.program[name].value = value
 
     def draw_line(
-        self, color: pygame.Color, begin: Coordinate, end: Coordinate, width: float = 0
+            self, color: pygame.Color, begin: Coordinate, end: Coordinate, width: float = 0
     ):
         pygame.draw.line(
             self.surface,
@@ -79,12 +82,12 @@ class Renderer:
         )
 
     def draw_line_wrapping(
-        self,
-        color: pygame.Color,
-        begin: Coordinate,
-        end: Coordinate,
-        width: float = 0,
-        wrap_around: float = 1.0,
+            self,
+            color: pygame.Color,
+            begin: Coordinate,
+            end: Coordinate,
+            width: float = 0,
+            wrap_around: float = 1.0,
     ):
         a, b = begin, end
 

@@ -1,7 +1,8 @@
 mysql-connector-python==8.0.29
 python-dotenv==1.0.1
 pydantic==2.8.2
-pygame==2.6.0
+pygame-ce==2.5.1
 numpy==2.0.2
 scipy==1.14.1
 geopy==2.4.1
+moderngl==5.11.1

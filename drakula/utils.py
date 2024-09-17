@@ -21,3 +21,8 @@ def pairs(ls):
     for i in range(length - 1):
         yield ls[i], ls[i + 1]
     yield ls[-1], ls[0]
+
+#Used to load shader files
+def load_shader(shader_file):
+    with open(shader_file, 'r') as file:
+        return file.read()

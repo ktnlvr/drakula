@@ -38,12 +38,15 @@ class MapScene(Scene):
                 self.world_map, (self.horizontal_scroll + renderer.size[0], 0)
             )
 
+        normalized_horizontal_scroll = 0.5 * self.horizontal_scroll / renderer.size[1]
         for i, js in self.state.graph.items():
             airport = self.state.airports[i]
             a = angles_to_world_pos(*airport.position)
+            a = [(a[0] + normalized_horizontal_scroll) % 1., a[1]]
             for j in js:
                 connection = self.state.airports[j]
                 b = angles_to_world_pos(*connection.position)
+                b = [(b[0] + normalized_horizontal_scroll) % 1., b[1]]
 
                 renderer.draw_line_wrapping((0, 220, 0), a, b)
 
@@ -71,6 +74,7 @@ class MapScene(Scene):
 
         for airport in self.state.airports:
             p = angles_to_world_pos(airport.latitude_deg, airport.longitude_deg)
+            p = [(p[0] + normalized_horizontal_scroll) % 1., p[1]]
             renderer.draw_circle((255, 0, 0), p, 0.01)
 
         super().render(renderer)

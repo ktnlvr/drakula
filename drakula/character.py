@@ -24,7 +24,6 @@ class Character:
                 self.input_text = self.input_text.strip()
 
                 idx = game_state.get_index(self.input_text)
-                print(idx, self.input_text)
                 self.input_text = ""
                 if (
                         idx not in game_state.graph

@@ -17,7 +17,14 @@ class Database:
         user: Optional[str] = None,
         password: Optional[str] = None,
     ):
-        self.connection = connect(host=host, port=port, user=user, password=password)
+        self.connection = connect(
+            host=host,
+            port=port,
+            user=user,
+            password=password,
+            database="flight_game",
+            autocommit=False,
+        )
 
     def single_query(
         self, query: str, model: Callable[[...], T] = dict
@@ -38,7 +45,6 @@ class Database:
 class GameDatabaseFacade:
     def __init__(self, db):
         self.db = db
-        self.db.single_query("use flight_game;")
 
         self._continents = list()
         self.update_caches()

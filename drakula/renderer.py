@@ -7,6 +7,7 @@ import pygame
 from .maths import (
     angles_to_world_pos,
 )
+from .state import AirportStatus
 from .utils import load_shader
 
 Coordinate = Tuple[float, float]
@@ -135,13 +136,28 @@ class Renderer:
 
         for airport_index in cntd_airports:
             airport = scene.state.states[airport_index].airport
-
+            if scene.state.states[airport_index].status != AirportStatus.AVAILABLE:
+                continue
             world_pos = angles_to_world_pos(airport.latitude_deg, airport.longitude_deg)
             world_pos = (world_pos[0] * screen_width, world_pos[1] * screen_height)
 
             # Check for overlaps and adjust position if necessary
             while any((abs(world_pos[0] - pos[0]) < 10 and abs(world_pos[1] - pos[1]) < 10) for pos in positions):
                 world_pos = (world_pos[0] + 10, world_pos[1] + 10)
+
+            # Check if the text is going off-screen and adjust position
+            text_surface = font.render(airport.ident, True, (0, 0, 0))
+            text_rect = text_surface.get_rect(topleft=world_pos)
+
+            # Adjust position if text is off-screen
+            if text_rect.right > screen_width:
+                world_pos = (screen_width - text_rect.width, world_pos[1])  # Align to the right edge
+            if text_rect.bottom > screen_height:
+                world_pos = (world_pos[0], screen_height - text_rect.height)  # Align to the bottom edge
+            if text_rect.left < 0:
+                world_pos = (0, world_pos[1])  # Align to the left edge
+            if text_rect.top < 0:
+                world_pos = (world_pos[0], 0)  # Align to the top edge
 
             positions.append(world_pos)
 

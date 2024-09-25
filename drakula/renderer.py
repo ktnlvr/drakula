@@ -139,7 +139,7 @@ class Renderer:
             if scene.state.states[airport_index].status != AirportStatus.AVAILABLE:
                 continue
             world_pos = angles_to_world_pos(airport.latitude_deg, airport.longitude_deg)
-            world_pos = (world_pos[0] * screen_width, world_pos[1] * screen_height)
+            world_pos = (world_pos[0] * screen_width - 15, world_pos[1] * screen_height - 20)
 
             # Check for overlaps and adjust position if necessary
             while any((abs(world_pos[0] - pos[0]) < 10 and abs(world_pos[1] - pos[1]) < 10) for pos in positions):

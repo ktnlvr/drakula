@@ -12,6 +12,7 @@ from .state import GameState
 
 
 def main(*args, **kwargs):
+    pygame.init()
     game = create_database_facade()
 
     airports = list()
@@ -22,43 +23,86 @@ def main(*args, **kwargs):
 
     renderer = Renderer((1280, 644))
 
-    pygame.init()
     pygame.display.set_caption("The Hunt for Dracula")
     icon = pygame.image.load("vampire.png")
     pygame.display.set_icon(icon)
 
-    character = Character(0)
+    character = Character(8)
+    dracula = DraculaBrain()
     scene: Scene = MapScene(state, character)
 
-    brain = DraculaBrain()
-
     running = True
+    game_over = False
+    result = None
     while running:
         renderer.begin()
 
         scene = scene.next_scene
         scene.render(renderer)
 
-        moves = brain.list_moves(state, state.dracula_location)
+        dracula_location = state.dracula_location
+        airport_name = state.airports[dracula_location].ident
+        renderer.display_dracula_location(airport_name)
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            if result := character.handle_input(event, state):
-                if result == CharacterInputResult.Moved:
-                    state.add_timer_for_traps()
-                    # TODO: make this less confusing
-                    state.dracula_location = choice(
-                        [x for _, x in moves], 1, p=[p for p, _ in moves]
-                    )[0]
-                    state.dracula_trail += [state.dracula_location]
-                continue
-            if renderer.handle_event(event):
-                continue
-            if scene.handle_event(renderer, event):
-                continue
+        #just for testing
+        dracula_location = state.dracula_location
+        dracula_icao = state.airports[dracula_location].ident
+        renderer.display_dracula_location(dracula_icao)
 
-        scene = scene.next_scene
+        if game_over:
+            renderer.display_result(result)
+            renderer.begin()
+
+            scene.render(renderer)
+            renderer.display_result(result)
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_y:
+                        game_over = False
+                        break
+                    elif event.key == pygame.K_n or event.key == pygame.K_q:
+                        running = False
+
+        if not game_over:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                    break
+
+                character_input = character.handle_input(event, state)
+                if character_input == CharacterInputResult.Moved or character_input == CharacterInputResult.Accepted:
+
+                    input_icao = character.input_text.strip()
+                    #print(f"Player entered: {input_icao}, Dracula ICAO: {dracula_icao}")
+
+                    if input_icao == dracula_icao:
+                        result = "Win"
+                        game_over = True
+                        break
+
+                    if character_input == CharacterInputResult.Moved:
+                        state.add_timer_for_traps()
+
+                        dracula_next_move = choice(
+                            [x for _, x in dracula.list_moves(state, state.dracula_location)],
+                            1,
+                            p=[p for p, _ in dracula.list_moves(state, state.dracula_location)]
+                        )[0]
+
+                        if dracula_next_move != state.dracula_location:
+                            state.dracula_location = dracula_next_move
+                            state.dracula_trail.append(state.dracula_location)
+                            state.destroyed_airports.add(state.dracula_location)
+                        #print(state.destroyed_airports_count)
+
+                if state.destroyed_airports_count / len(state.airports) >= 0.5:
+                    result = "Lose"
+                    game_over = True
+                    break
+
         renderer.end()
 
     pygame.quit()

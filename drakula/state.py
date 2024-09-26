@@ -21,7 +21,6 @@ class AirportState:
         self.status = status
         self.timer = 0
 
-
 class GameState:
     def __init__(self, airports: list[Airport], timestamp: datetime.datetime = None):
         if timestamp is None:
@@ -76,6 +75,7 @@ class GameState:
         # TODO: choose a better dracula location
         self.dracula_location = 0
         self.dracula_trail = [self.dracula_location]
+        self.destroyed_airports = set(self.dracula_trail)
 
     @property
     def airports(self) -> list[Airport]:
@@ -122,3 +122,7 @@ class GameState:
         )
         secs_in_day = 86400
         return secs / secs_in_day
+
+    @property
+    def destroyed_airports_count(self):
+        return len(self.destroyed_airports)

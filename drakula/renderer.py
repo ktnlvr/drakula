@@ -6,6 +6,7 @@ import numpy as np
 import pygame
 
 from .utils import load_shader
+from .character import CharacterInputResult
 
 Coordinate = Tuple[float, float]
 
@@ -30,6 +31,12 @@ def get_screen_size():
 
 class Renderer:
     def __init__(self, screen_size: Optional[Tuple[int, int]] = None):
+        pygame.init()
+        pygame.font.init()
+        self.result_font = pygame.font.SysFont('Arial', 60, bold=True)
+        self.option_font = pygame.font.SysFont('Arial', 40)
+        self.info_font = pygame.font.SysFont('Arial', 30)
+
         if screen_size is None:
             screen_size = get_screen_size()
         self.screen = pygame.display.set_mode(screen_size, PYGAME_MODE_FLAGS)
@@ -127,6 +134,38 @@ class Renderer:
         pygame.draw.circle(
             self.surface, color, self.project(at), radius * self.minimal_scalar
         )
+    # just for testing
+    def display_dracula_location(self, dra_icao: str):
+        dra_text = self.info_font.render(f"Dracula is at: {dra_icao}", True, (0, 0, 255))
+        text_rect = dra_text.get_rect()
+        screen_width, screen_height = self.surface.get_size()
+        x_position = screen_width - text_rect.width - 10
+        y_position = screen_height - text_rect.height - 10
+        self.surface.blit(dra_text, (x_position, y_position))
+
+    def display_result(self, result: str):
+        box_width, box_height = 700, 350
+        screen_width, screen_height = self.surface.get_size()
+        box_x = (screen_width - box_width) // 2
+        box_y = (screen_height - box_height) // 2
+        box_surface = pygame.Surface((box_width, box_height), pygame.SRCALPHA)
+        pygame.draw.rect(box_surface, (0, 0, 0, 200), box_surface.get_rect(), border_radius=20)
+
+        if "Win" in result:
+            result_text = self.result_font.render("You Catched Dracula!", True, (0, 255, 0))
+        elif "Lose" in result:
+            result_text = self.result_font.render("Game Over", True, (255, 0, 0))
+        else:
+            result_text = self.result_font.render("Game Over", True, (255, 255, 255))
+
+        result_rect = result_text.get_rect(center=(box_width // 2, box_height // 3))
+        options_text = self.option_font.render("Play again? Y / N", True, (255, 255, 255))
+        options_rect = options_text.get_rect(center=(box_width // 2, 2 * box_height // 3))
+        box_surface.blit(result_text, result_rect)
+        box_surface.blit(options_text, options_rect)
+        border_rect = box_surface.get_rect()
+        pygame.draw.rect(box_surface, (255, 215, 0), border_rect, width=1, border_radius=20)
+        self.surface.blit(box_surface, (box_x, box_y))
 
     def end(self):
         self.screen_texture.write(self.surface.get_view("1"))

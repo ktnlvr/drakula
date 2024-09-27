@@ -17,7 +17,7 @@ class Character:
         self.input_text = ""
 
     def handle_input(
-            self, event: pygame.event.Event, game_state: GameState
+        self, event: pygame.event.Event, game_state: GameState
     ) -> CharacterInputResult:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN:
@@ -27,8 +27,8 @@ class Character:
                 print(idx, self.input_text)
                 self.input_text = ""
                 if (
-                        idx not in game_state.graph
-                        or idx not in game_state.graph[self.current_location]
+                    idx not in game_state.graph
+                    or idx not in game_state.graph[self.current_location]
                 ):
                     return CharacterInputResult.Accepted
                 self.current_location = idx

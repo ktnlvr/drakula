@@ -89,8 +89,8 @@ class GameState:
 
     def trap_location(self, index):
         if (
-                self.states[index].status != AirportStatus.TRAPPED
-                and self.states[index].status != AirportStatus.DESTROYED
+            self.states[index].status != AirportStatus.TRAPPED
+            and self.states[index].status != AirportStatus.DESTROYED
         ):
             self.states[index].status = AirportStatus.TRAPPED
 
@@ -118,7 +118,7 @@ class GameState:
     @property
     def day_percentage(self) -> float:
         secs = self.timestamp.second + 60 * (
-                self.timestamp.minute + 60 * self.timestamp.hour
+            self.timestamp.minute + 60 * self.timestamp.hour
         )
         secs_in_day = 86400
         return secs / secs_in_day

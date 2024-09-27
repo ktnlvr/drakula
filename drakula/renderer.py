@@ -17,7 +17,7 @@ def should_wrap_coordinate(a: float, b: float, span: float) -> bool:
 
 
 PYGAME_MODE_FLAGS = (
-        pygame.OPENGL | pygame.RESIZABLE | pygame.HWSURFACE | pygame.DOUBLEBUF
+    pygame.OPENGL | pygame.RESIZABLE | pygame.HWSURFACE | pygame.DOUBLEBUF
 )
 
 
@@ -70,7 +70,7 @@ class Renderer:
         now = datetime.now()
         year, month, day = now.year, now.month, now.day
         seconds_since_midnight = (
-                now - now.replace(hour=0, minute=0, second=0, microsecond=0)
+            now - now.replace(hour=0, minute=0, second=0, microsecond=0)
         ).total_seconds()
         display = get_screen_size() * 0.9
 
@@ -96,7 +96,7 @@ class Renderer:
             self.program[name].value = value
 
     def draw_line(
-            self, color: pygame.Color, begin: Coordinate, end: Coordinate, width: float = 0
+        self, color: pygame.Color, begin: Coordinate, end: Coordinate, width: float = 0
     ):
         pygame.draw.line(
             self.surface,
@@ -107,12 +107,12 @@ class Renderer:
         )
 
     def draw_line_wrapping(
-            self,
-            color: pygame.Color,
-            begin: Coordinate,
-            end: Coordinate,
-            width: float = 0,
-            color_if_wrap: Optional[pygame.Color] = None,
+        self,
+        color: pygame.Color,
+        begin: Coordinate,
+        end: Coordinate,
+        width: float = 0,
+        color_if_wrap: Optional[pygame.Color] = None,
     ):
         a, b = begin, end
         if b[0] < a[0]:

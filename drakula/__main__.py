@@ -76,7 +76,6 @@ def main(*args, **kwargs):
                 if character_input == CharacterInputResult.Moved or character_input == CharacterInputResult.Accepted:
 
                     input_icao = character.input_text.strip()
-                    #print(f"Player entered: {input_icao}, Dracula ICAO: {dracula_icao}")
 
                     if input_icao == dracula_icao:
                         result = "Win"
@@ -96,7 +95,6 @@ def main(*args, **kwargs):
                             state.dracula_location = dracula_next_move
                             state.dracula_trail.append(state.dracula_location)
                             state.destroyed_airports.add(state.dracula_location)
-                        #print(state.destroyed_airports_count)
 
                 if state.destroyed_airports_count / len(state.airports) >= 0.5:
                     result = "Lose"

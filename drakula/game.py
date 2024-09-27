@@ -6,9 +6,12 @@ from pygame.event import Event
 from .maths import (
     angles_to_world_pos,
 )
-from .renderer import Renderer
+
+from .renderer import Renderer, AirportStatus
 from .scene import Scene
 from .state import GameState
+
+MAP_SCROLL_SPEED_PX_PER_S = 60
 
 
 class MapScene(Scene):
@@ -19,24 +22,32 @@ class MapScene(Scene):
         self.world_map = pygame.image.load("map.png")
         self.character = character
 
-        self.horizontal_scroll = 0
+        self.horizontal_scroll_px = 0
 
     def render(self, renderer: Renderer):
+        scroll_speed = MAP_SCROLL_SPEED_PX_PER_S * renderer.delta_time
+        current_player_airport = self.state.airports[self.character.current_location]
+        position = angles_to_world_pos(*current_player_airport.position)
+
+        self.horizontal_scroll_px = position[0] * renderer.size[0]
+
         self.world_map = pygame.transform.scale(self.world_map, renderer.size)
         renderer.surface.blit(self.world_map, (0, 0))
 
-        self.horizontal_scroll %= renderer.size[0]
-        renderer.surface.blit(self.world_map, (self.horizontal_scroll, 0))
-        if self.horizontal_scroll > 0:
+        self.horizontal_scroll_px %= renderer.size[0]
+        renderer.surface.blit(self.world_map, (self.horizontal_scroll_px, 0))
+        if self.horizontal_scroll_px > 0:
             renderer.surface.blit(
-                self.world_map, (self.horizontal_scroll - renderer.size[0], 0)
+                self.world_map, (self.horizontal_scroll_px - renderer.size[0], 0)
             )
-        if self.horizontal_scroll < 0:
+        if self.horizontal_scroll_px < 0:
             renderer.surface.blit(
-                self.world_map, (self.horizontal_scroll + renderer.size[0], 0)
+                self.world_map, (self.horizontal_scroll_px + renderer.size[0], 0)
             )
 
-        normalized_horizontal_scroll = 0.5 * self.horizontal_scroll / renderer.size[1]
+        normalized_horizontal_scroll = (
+                0.5 * self.horizontal_scroll_px / renderer.size[1]
+        )
         for i, js in self.state.graph.items():
             airport = self.state.airports[i]
             a = angles_to_world_pos(*airport.position)
@@ -52,6 +63,8 @@ class MapScene(Scene):
             p = angles_to_world_pos(airport.latitude_deg, airport.longitude_deg)
             p = [(p[0] + normalized_horizontal_scroll) % 1.0, p[1]]
             renderer.draw_circle((255, 0, 0), p, 0.01)
+
+        self.display_connected_airports(renderer)
 
         font = pygame.font.Font(None, 22)
         input_rect = pygame.Rect(10, 0, 300, 40)
@@ -87,10 +100,66 @@ class MapScene(Scene):
 
         super().render(renderer)
 
+    def display_connected_airports(self, renderer):
+        cntd_airports = self.state.graph[self.character.current_location]
+        font = pygame.font.Font(None, 18)
+        screen_width = renderer.surface.get_width()
+        screen_height = renderer.surface.get_height()
+        positions = []  # To track where we've drawn text
+        text_surfaces = []  # To store text surfaces for hover detection
+
+        for airport_index in cntd_airports:
+            airport = self.state.states[airport_index].airport
+            if self.state.states[airport_index].status != AirportStatus.AVAILABLE:
+                continue
+            world_pos = angles_to_world_pos(airport.latitude_deg, airport.longitude_deg)
+            world_pos = (
+                world_pos[0] * screen_width - 15,
+                world_pos[1] * screen_height - 20,
+            )
+
+            # Check for overlaps and adjust position if necessary
+            while any(
+                    (abs(world_pos[0] - pos[0]) < 10 and abs(world_pos[1] - pos[1]) < 10)
+                    for pos in positions
+            ):
+                world_pos = (world_pos[0] + 10, world_pos[1] + 10)
+
+            # Check if the text is going off-screen and adjust position
+            text_surface = font.render(airport.ident, True, (0, 0, 0))
+            text_rect = text_surface.get_rect(topleft=world_pos)
+
+            # Adjust position if text is off-screen
+            if text_rect.right > screen_width:
+                world_pos = (
+                    screen_width - text_rect.width,
+                    world_pos[1],
+                )  # Align to the right edge
+            if text_rect.bottom > screen_height:
+                world_pos = (
+                    world_pos[0],
+                    screen_height - text_rect.height,
+                )  # Align to the bottom edge
+            if text_rect.left < 0:
+                world_pos = (0, world_pos[1])  # Align to the left edge
+            if text_rect.top < 0:
+                world_pos = (world_pos[0], 0)  # Align to the top edge
+
+            positions.append(world_pos)
+
+            # Render the ICAO code text surface
+            text_surface = font.render(airport.ident, True, (0, 0, 0))
+            text_surfaces.append(
+                (text_surface, world_pos, airport.ident)
+            )  # Store surface, position, and ICAO code
+
+            # Blit the text at the calculated position
+            renderer.surface.blit(text_surface, world_pos)
+
     def handle_event(self, event: Event) -> bool:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT:
-                self.horizontal_scroll += 100
+                self.horizontal_scroll_px += 100
             if event.key == pygame.K_RIGHT:
-                self.horizontal_scroll -= 100
+                self.horizontal_scroll_px -= 100
         return super().handle_event(event)

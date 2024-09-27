@@ -1,7 +1,9 @@
 import dotenv
 import pygame
 from numpy.random import choice
+from logging import basicConfig, DEBUG
 
+from .logging import logger
 from .db import create_database_facade
 from .character import Character, CharacterInputResult
 from .dracula import DraculaBrain
@@ -68,4 +70,6 @@ def main(*args, **kwargs):
 
 if __name__ == "__main__":
     dotenv.load_dotenv()
+    basicConfig()
+    logger.setLevel(DEBUG)
     main()

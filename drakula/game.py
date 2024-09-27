@@ -25,12 +25,6 @@ class MapScene(Scene):
         self.horizontal_scroll_px = 0
 
     def render(self, renderer: Renderer):
-        scroll_speed = MAP_SCROLL_SPEED_PX_PER_S * renderer.delta_time
-        current_player_airport = self.state.airports[self.character.current_location]
-        position = angles_to_world_pos(*current_player_airport.position)
-
-        self.horizontal_scroll_px = position[0] * renderer.size[0]
-
         self.world_map = pygame.transform.scale(self.world_map, renderer.size)
         renderer.surface.blit(self.world_map, (0, 0))
 
@@ -48,6 +42,7 @@ class MapScene(Scene):
         normalized_horizontal_scroll = (
                 0.5 * self.horizontal_scroll_px / renderer.size[1]
         )
+
         for i, js in self.state.graph.items():
             airport = self.state.airports[i]
             a = angles_to_world_pos(*airport.position)
@@ -63,8 +58,6 @@ class MapScene(Scene):
             p = angles_to_world_pos(airport.latitude_deg, airport.longitude_deg)
             p = [(p[0] + normalized_horizontal_scroll) % 1.0, p[1]]
             renderer.draw_circle((255, 0, 0), p, 0.01)
-
-        self.display_connected_airports(renderer)
 
         font = pygame.font.Font(None, 22)
         input_rect = pygame.Rect(10, 0, 300, 40)
@@ -112,7 +105,7 @@ class MapScene(Scene):
             airport = self.state.states[airport_index].airport
             if self.state.states[airport_index].status != AirportStatus.AVAILABLE:
                 continue
-            world_pos = angles_to_world_pos(airport.latitude_deg, airport.longitude_deg)
+            world_pos = angles_to_world_pos(*airport.position)
             world_pos = (
                 world_pos[0] * screen_width - 15,
                 world_pos[1] * screen_height - 20,

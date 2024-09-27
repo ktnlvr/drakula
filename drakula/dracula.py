@@ -1,4 +1,4 @@
-from .state import GameState
+from .state import GameState, AirportStatus
 
 
 class DraculaBrain:
@@ -7,7 +7,8 @@ class DraculaBrain:
 
     def list_moves(self, state: GameState, location: int) -> list[tuple[float, int]]:
         c = location
-        neighbours = state.graph[location]
+        neighbours = [idx for idx in state.graph[location] if state.states[idx].status != AirportStatus.DESTROYED]
+
         return [
             (1.0 / len(neighbours), i)
             for i in neighbours

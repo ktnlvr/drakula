@@ -9,7 +9,7 @@ from .maths import (
 
 from .renderer import Renderer, AirportStatus
 from .scene import Scene
-from .state import GameState
+from .state import GameState, AirportStatus
 
 MAP_SCROLL_SPEED_PX_PER_S = 60
 
@@ -54,10 +54,14 @@ class MapScene(Scene):
 
                 renderer.draw_line_wrapping((0, 255, 0), a, b)
 
-        for airport in self.state.airports:
+        for state in self.state.states:
+            airport = state.airport
             p = angles_to_world_pos(airport.latitude_deg, airport.longitude_deg)
             p = [(p[0] + normalized_horizontal_scroll) % 1.0, p[1]]
-            renderer.draw_circle((255, 0, 0), p, 0.01)
+            point_color = (255, 0, 0)
+            if state.status == AirportStatus.TRAPPED:
+                point_color = (255, 200, 0)
+            renderer.draw_circle(point_color, p, 0.01)
 
         font = pygame.font.Font(None, 22)
         input_rect = pygame.Rect(10, 0, 300, 40)

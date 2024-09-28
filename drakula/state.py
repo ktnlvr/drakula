@@ -94,12 +94,13 @@ class GameState:
         ):
             self.states[index].status = AirportStatus.TRAPPED
 
-    def add_timer_for_traps(self):
+    def add_timer_for_traps(self, character):
         for state in self.states:
             if state.status == AirportStatus.TRAPPED:
                 state.timer = state.timer + 1
                 if state.timer > 3:
                     state.status = AirportStatus.AVAILABLE
+                    character.trap_count += 1
                     state.timer = 0
 
     def distance_between(self, idx0: int, idx1: int) -> float:

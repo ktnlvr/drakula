@@ -3,15 +3,25 @@ from .character import Character
 import pygame
 from pygame.event import Event
 
-from .maths import (
-    angles_to_world_pos,
-)
-
-from .renderer import Renderer, AirportStatus
+from .renderer import Renderer
 from .scene import Scene
 from .state import GameState, AirportStatus
 
 MAP_SCROLL_SPEED_PX_PER_S = 60
+
+AIRPORT_COLOR = pygame.Color(255, 0, 0)
+AIRPORT_TRAPPED_COLOR = pygame.Color(255, 255, 0)
+AIRPORT_DESTROYED_COLOR = pygame.Color(102, 88, 73)
+AIRPORT_CONNECTION_COLOR = pygame.Color(0, 255, 0)
+ICAO_INPUT_COLOR = pygame.Color(200, 200, 200)
+ICAO_STATUS_BAR_COLOR = pygame.Color(0, 0, 0, int(255 * 0.3))
+
+CURRENT_AIRPORT_HIGHLIGHT_COLOR = pygame.Color(40, 255, 40)
+
+ICAO_INPUT_WIDTH = 300
+ICAO_INPUT_HEIGHT = 40
+ICAO_INPUT_PADDING = 5
+ICAO_STATUS_PADDING = 10
 
 
 class MapScene(Scene):
@@ -49,58 +59,81 @@ class MapScene(Scene):
     def render_airport_network(self, renderer: Renderer):
         normalized_scroll = self.normalized_horizontal_scroll(renderer)
 
+        # Draw airport connections
         for i, js in self.state.graph.items():
             airport = self.state.airports[i]
-            a = angles_to_world_pos(*airport.position)
-            a = [(a[0] + normalized_scroll) % 1.0, a[1]]
+            a = airport.screen_position
+            a = (a[0] + normalized_scroll) % 1.0, a[1]
             for j in js:
-                connection = self.state.airports[j]
-                b = angles_to_world_pos(*connection.position)
-                b = [(b[0] + normalized_scroll) % 1.0, b[1]]
+                connected_airports = self.state.airports[j]
+                b = connected_airports.screen_position
+                b = (b[0] + normalized_scroll) % 1.0, b[1]
 
-                renderer.draw_line_wrapping((0, 255, 0), a, b)
+                renderer.draw_line_wrapping(AIRPORT_CONNECTION_COLOR, a, b)
 
-        for state in self.state.states:
-            airport = state.airport
-            p = angles_to_world_pos(airport.latitude_deg, airport.longitude_deg)
-            p = [(p[0] + normalized_scroll) % 1.0, p[1]]
-            point_color = (255, 0, 0)
+        # Draw airport markers
+        for idx, state in enumerate(self.state.states):
+            p = state.airport.screen_position
+            p = (p[0] + normalized_scroll) % 1.0, p[1]
+            point_color = AIRPORT_COLOR
             if state.status == AirportStatus.TRAPPED:
-                point_color = (255, 200, 0)
+                point_color = AIRPORT_DESTROYED_COLOR
+            elif state.status == AirportStatus.DESTROYED:
+                point_color = AIRPORT_DESTROYED_COLOR
             renderer.draw_circle(point_color, p, 0.01)
+
+            if idx == self.character.current_location:
+                renderer.draw_circle(CURRENT_AIRPORT_HIGHLIGHT_COLOR, p, 0.007)
 
     def render_icao_input(self, renderer: Renderer):
         font = pygame.font.Font(None, 22)
-        input_rect = pygame.Rect(10, 0, 300, 40)
-        input_rect.bottomleft = (5, pygame.display.get_surface().get_height() - 5)
+        input_rect = pygame.Rect()
+        input_rect.bottomleft = (
+            ICAO_INPUT_PADDING,
+            pygame.display.get_surface().get_height()
+            - ICAO_INPUT_PADDING
+            - ICAO_INPUT_HEIGHT,
+        )
+        input_rect.width = ICAO_INPUT_WIDTH
+        input_rect.height = ICAO_INPUT_HEIGHT
 
         current_airport = self.state.states[self.character.current_location].airport
-        current_airport_pos = current_airport.position
-        world_pos = angles_to_world_pos(*current_airport_pos)
-        renderer.draw_circle((0, 255, 0), world_pos, 0.007)
-        bg_color = pygame.Color(200, 200, 200)
 
-        pygame.draw.rect(renderer.surface, bg_color, input_rect)
+        pygame.draw.rect(renderer.surface, ICAO_INPUT_COLOR, input_rect)
         input_text = font.render(
             f"Enter ICAO: {self.character.input_text}", True, (0, 0, 0)
         )
-        renderer.surface.blit(input_text, (input_rect.x + 5, input_rect.y + 5))
+        renderer.surface.blit(
+            input_text,
+            (input_rect.x + ICAO_INPUT_PADDING, input_rect.y + ICAO_INPUT_PADDING),
+        )
 
         connected_airports = ",".join(
             self.state.airports[i].ident
             for i in self.state.graph[self.character.current_location]
         )
-        info_str = f" Airport: {current_airport.name}  |  ICAO: {current_airport.ident}  |  Position:{current_airport.position}  | Connected Airports:{connected_airports}"
-        info_text = font.render(info_str, True, (255, 255, 255))
 
-        padding = 5
-        bg_rect = pygame.Rect(
-            0, 0, renderer.surface.get_width(), info_text.get_height() + padding * 2
+        status_elements = [
+            f"Airport: {current_airport.name}",
+            f"ICAO: {current_airport.ident}",
+            f"Position: {round(current_airport.geo_position[0], 2)}, {round(current_airport.geo_position[1], 2)}",
+            f"Connected: {connected_airports}",
+        ]
+
+        status_text = font.render(" | ".join(status_elements), True, (255, 255, 255))
+
+        status_rect = pygame.Rect(
+            0,
+            0,
+            renderer.surface.get_width(),
+            status_text.get_height() + ICAO_STATUS_PADDING * 2,
         )
-        bg_surface = pygame.Surface((bg_rect.width, bg_rect.height), pygame.SRCALPHA)
-        bg_surface.fill((0, 0, 0, 76))  # 30% opacity
-        renderer.surface.blit(bg_surface, bg_rect)
-        renderer.surface.blit(info_text, (padding, padding))
+        status_surface = pygame.Surface(
+            (status_rect.width, status_rect.height), pygame.SRCALPHA
+        )
+        status_surface.fill(ICAO_STATUS_BAR_COLOR)
+        renderer.surface.blit(status_surface, status_rect)
+        renderer.surface.blit(status_text, (ICAO_STATUS_PADDING, ICAO_STATUS_PADDING))
 
     def display_connected_airports(self, renderer):
         cntd_airports = self.state.graph[self.character.current_location]
@@ -114,49 +147,49 @@ class MapScene(Scene):
             airport = self.state.states[airport_index].airport
             if self.state.states[airport_index].status != AirportStatus.AVAILABLE:
                 continue
-            world_pos = angles_to_world_pos(*airport.position)
-            world_pos = (
-                world_pos[0] * screen_width - 15,
-                world_pos[1] * screen_height - 20,
+            screen_pos = airport.screen_position
+            screen_pos = (
+                screen_pos[0] * screen_width - 15,
+                screen_pos[1] * screen_height - 20,
             )
 
             # Check for overlaps and adjust position if necessary
             while any(
-                    (abs(world_pos[0] - pos[0]) < 10 and abs(world_pos[1] - pos[1]) < 10)
+                    (abs(screen_pos[0] - pos[0]) < 10 and abs(screen_pos[1] - pos[1]) < 10)
                     for pos in positions
             ):
-                world_pos = (world_pos[0] + 10, world_pos[1] + 10)
+                screen_pos = (screen_pos[0] + 10, screen_pos[1] + 10)
 
             # Check if the text is going off-screen and adjust position
             text_surface = font.render(airport.ident, True, (0, 0, 0))
-            text_rect = text_surface.get_rect(topleft=world_pos)
+            text_rect = text_surface.get_rect(topleft=screen_pos)
 
             # Adjust position if text is off-screen
             if text_rect.right > screen_width:
-                world_pos = (
+                screen_pos = (
                     screen_width - text_rect.width,
-                    world_pos[1],
+                    screen_pos[1],
                 )  # Align to the right edge
             if text_rect.bottom > screen_height:
-                world_pos = (
-                    world_pos[0],
+                screen_pos = (
+                    screen_pos[0],
                     screen_height - text_rect.height,
                 )  # Align to the bottom edge
             if text_rect.left < 0:
-                world_pos = (0, world_pos[1])  # Align to the left edge
+                screen_pos = (0, screen_pos[1])  # Align to the left edge
             if text_rect.top < 0:
-                world_pos = (world_pos[0], 0)  # Align to the top edge
+                screen_pos = (screen_pos[0], 0)  # Align to the top edge
 
-            positions.append(world_pos)
+            positions.append(screen_pos)
 
             # Render the ICAO code text surface
             text_surface = font.render(airport.ident, True, (0, 0, 0))
             text_surfaces.append(
-                (text_surface, world_pos, airport.ident)
+                (text_surface, screen_pos, airport.ident)
             )  # Store surface, position, and ICAO code
 
             # Blit the text at the calculated position
-            renderer.surface.blit(text_surface, world_pos)
+            renderer.surface.blit(text_surface, screen_pos)
 
     def handle_event(self, event: Event) -> bool:
         if event.type == pygame.KEYDOWN:
@@ -167,6 +200,4 @@ class MapScene(Scene):
         return super().handle_event(event)
 
     def normalized_horizontal_scroll(self, renderer) -> float:
-        return (
-                0.5 * self.horizontal_scroll_px / renderer.size[1]
-        )
+        return 0.5 * self.horizontal_scroll_px / renderer.size[1]

@@ -69,8 +69,8 @@ class GameState:
                 # to simplify the cache use symmetry of distances
                 if v1 > v0:
                     v0, v1 = v1, v0
-                p0 = airports[v0].position
-                p1 = airports[v1].position
+                p0 = airports[v0].geo_position
+                p1 = airports[v1].geo_position
                 self._distance_cache[(v0, v1)] = distance(p0, p1).kilometers
 
         # TODO: choose a better dracula location
@@ -108,8 +108,8 @@ class GameState:
             idx0, idx1 = idx1, idx0
         pair = (idx0, idx1)
         if pair in self._distance_cache:
-            p0 = self.airports[idx0].position
-            p1 = self.airports[idx1].position
+            p0 = self.airports[idx0].geo_position
+            p1 = self.airports[idx1].geo_position
             self._distance_cache[pair] = distance(p0, p1).kilometers
         return self._distance_cache[pair]
 

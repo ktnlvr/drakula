@@ -9,11 +9,11 @@ Deg = float
 
 
 # https://stackoverflow.com/questions/1369512/converting-longitude-latitude-to-x-y-on-a-map-with-calibration-points
-def angles_to_world_pos(lat: Deg, lon: Deg) -> np.ndarray:
+def geo_pos_to_screen_pos(lat: Deg, lon: Deg) -> np.ndarray:
     """
     :param lat: north-south position of a point (from -90 at south to +90 at north).
     :param lon: east-west position of a point relative to the prime meridian (from -180 to +180)
-    :return: the position of a point projected equirectangularly onto a flat plane
+    :return: the position of a point projected equirectangularly onto a flat plane from 0 to 1
     """
     x = (180 + lon) / 360
     y = (90 - lat) / 180

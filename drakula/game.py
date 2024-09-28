@@ -25,6 +25,13 @@ class MapScene(Scene):
         self.horizontal_scroll_px = 0
 
     def render(self, renderer: Renderer):
+        self.render_world_map(renderer)
+        self.render_airport_network(renderer)
+        self.render_icao_input(renderer)
+
+        super().render(renderer)
+
+    def render_world_map(self, renderer: Renderer):
         self.world_map = pygame.transform.scale(self.world_map, renderer.size)
         renderer.surface.blit(self.world_map, (0, 0))
 
@@ -39,30 +46,30 @@ class MapScene(Scene):
                 self.world_map, (self.horizontal_scroll_px + renderer.size[0], 0)
             )
 
-        normalized_horizontal_scroll = (
-                0.5 * self.horizontal_scroll_px / renderer.size[1]
-        )
+    def render_airport_network(self, renderer: Renderer):
+        normalized_scroll = self.normalized_horizontal_scroll(renderer)
 
         for i, js in self.state.graph.items():
             airport = self.state.airports[i]
             a = angles_to_world_pos(*airport.position)
-            a = [(a[0] + normalized_horizontal_scroll) % 1.0, a[1]]
+            a = [(a[0] + normalized_scroll) % 1.0, a[1]]
             for j in js:
                 connection = self.state.airports[j]
                 b = angles_to_world_pos(*connection.position)
-                b = [(b[0] + normalized_horizontal_scroll) % 1.0, b[1]]
+                b = [(b[0] + normalized_scroll) % 1.0, b[1]]
 
                 renderer.draw_line_wrapping((0, 255, 0), a, b)
 
         for state in self.state.states:
             airport = state.airport
             p = angles_to_world_pos(airport.latitude_deg, airport.longitude_deg)
-            p = [(p[0] + normalized_horizontal_scroll) % 1.0, p[1]]
+            p = [(p[0] + normalized_scroll) % 1.0, p[1]]
             point_color = (255, 0, 0)
             if state.status == AirportStatus.TRAPPED:
                 point_color = (255, 200, 0)
             renderer.draw_circle(point_color, p, 0.01)
 
+    def render_icao_input(self, renderer: Renderer):
         font = pygame.font.Font(None, 22)
         input_rect = pygame.Rect(10, 0, 300, 40)
         input_rect.bottomleft = (5, pygame.display.get_surface().get_height() - 5)
@@ -94,8 +101,6 @@ class MapScene(Scene):
         bg_surface.fill((0, 0, 0, 76))  # 30% opacity
         renderer.surface.blit(bg_surface, bg_rect)
         renderer.surface.blit(info_text, (padding, padding))
-
-        super().render(renderer)
 
     def display_connected_airports(self, renderer):
         cntd_airports = self.state.graph[self.character.current_location]
@@ -160,3 +165,8 @@ class MapScene(Scene):
             if event.key == pygame.K_RIGHT:
                 self.horizontal_scroll_px -= 100
         return super().handle_event(event)
+
+    def normalized_horizontal_scroll(self, renderer) -> float:
+        return (
+                0.5 * self.horizontal_scroll_px / renderer.size[1]
+        )

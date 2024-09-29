@@ -9,8 +9,8 @@ from .renderer import Renderer
 from .scene import Scene
 from .state import GameState, AirportStatus
 
-MAP_SCROLL_ACCELERATION_COEF = 21
-MAP_SCROLL_SPEED_PX_PER_S = 60
+MAP_SCROLL_ACCELERATION_COEFFICIENT = 21
+MAP_SCROLL_SPEED_PERCENT_PER_S = 25
 
 AIRPORT_COLOR = pygame.Color(255, 0, 0)
 AIRPORT_TRAPPED_COLOR = pygame.Color(255, 255, 0)
@@ -59,10 +59,11 @@ class MapScene(Scene):
         def exp_decay(a, b, decay):
             return b + (a - b) * np.exp(-decay * dt)
 
-        lerp_speed = MAP_SCROLL_ACCELERATION_COEF
+        lerp_speed = MAP_SCROLL_ACCELERATION_COEFFICIENT
         self.current_scroll_speed = exp_decay(self.current_scroll_speed, self.target_scroll_speed, lerp_speed)
 
-        self.horizontal_scroll_px += self.current_scroll_speed * MAP_SCROLL_SPEED_PX_PER_S * dt
+        horizontal_scroll_px_per_s = renderer.size[0] * MAP_SCROLL_SPEED_PERCENT_PER_S / 100
+        self.horizontal_scroll_px += self.current_scroll_speed * horizontal_scroll_px_per_s * dt
 
     def render_world_map(self, renderer: Renderer):
         world_map = pygame.transform.scale(self.world_map_image.copy(), renderer.size)

@@ -7,6 +7,8 @@ from scipy.spatial import Delaunay
 Rad = float
 Deg = float
 
+EARTH_RADIUS = 2.093e7
+
 
 # https://stackoverflow.com/questions/1369512/converting-longitude-latitude-to-x-y-on-a-map-with-calibration-points
 def geo_pos_to_screen_pos(lat: Deg, lon: Deg) -> np.ndarray:
@@ -27,7 +29,6 @@ def geodesic_to_3d_pos(
     lon_deg: Deg,
     alt_ft: float,
     flattening: float = 1 / 298.25,
-    radius_ft: float = 2.093e7,
 ) -> np.ndarray:
     """
     Convert latitude and longitude to coordinates on a sphere.
@@ -49,7 +50,7 @@ def geodesic_to_3d_pos(
     lon = lon_deg * np.pi / 180.0
     alt = alt_ft
     l = atan((1 - flattening) ** 2 * tan(lat))
-    r = radius_ft
+    r = EARTH_RADIUS
 
     x = r * cos(l) * cos(lon) + alt * cos(lat) * cos(lon)
     y = r * cos(l) * sin(lon) + alt * cos(lat) * sin(lon)
@@ -128,6 +129,13 @@ def solar_position_from_jd(jd: float) -> np.ndarray:
     gmst = greenwich_mean_sidereal_time(jd)
     gp = geographise(ra, dec, gmst)
     return np.array(list(gp))
+
+
+# https://en.wikipedia.org/wiki/Spherical_coordinate_system#Cartesian_coordinates
+def x_y_to_geo_pos_deg(x, y):
+    theta = np.arccos(1 / np.sqrt(x ** 2 + y ** 2 + 1))
+    phi = np.sign(y) * np.arccos(x / np.sqrt(x ** 2 + y ** 2))
+    return np.array([theta, phi])
 
 
 def delaunay_triangulate_points(points):

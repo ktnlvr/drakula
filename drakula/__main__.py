@@ -1,16 +1,18 @@
 import dotenv
 import pygame
 from numpy.random import choice
-from logging import basicConfig, DEBUG
+from logging import basicConfig as init_basic_logging
 
-from .logging import logger
+from drakula.debug import is_debug_layer_enabled, DEBUG_LAYER_STRESSTEST
 from .db import create_database_facade
 from .character import Character, CharacterInputResult
 from .dracula import DraculaBrain
 from .game import MapScene
 from .renderer import Renderer
 from .scene import Scene
-from .state import GameState
+from .state import GameState, disperse_airports_inplace
+
+AIRPORT_DISPERSION_STEPS = 16
 
 
 def main(*args, **kwargs):
@@ -20,11 +22,13 @@ def main(*args, **kwargs):
     for continent in game._continents:
         airports.extend(game.fetch_random_airports(4, continent))
 
+    for _ in range(AIRPORT_DISPERSION_STEPS):
+        disperse_airports_inplace(airports, 0.1)
+
     state = GameState(airports)
 
     renderer = Renderer((1280, 644))
 
-    pygame.init()
     pygame.display.set_caption("The Hunt for Dracula")
     icon = pygame.image.load("vampire.png")
     pygame.display.set_icon(icon)
@@ -67,8 +71,24 @@ def main(*args, **kwargs):
     pygame.quit()
 
 
+def stresstest_main(n):
+    for i in range(n):
+        pygame.init()
+        pygame.event.post(pygame.event.Event(pygame.QUIT))
+        main()
+        print(f"Stresstest {i}: {round(i / N, 2)}")
+    print("Done! 100%")
+
+
 if __name__ == "__main__":
+    # set up environment
     dotenv.load_dotenv()
-    basicConfig()
-    logger.setLevel(DEBUG)
+    pygame.init()
+    init_basic_logging()
+
+    if is_debug_layer_enabled(DEBUG_LAYER_STRESSTEST):
+        N = 2 ** 8
+        stresstest_main(N)
+        exit()
+
     main()

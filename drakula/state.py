@@ -4,7 +4,7 @@ from enum import Enum
 import numpy as np
 from geopy.distance import distance
 
-from .maths import geodesic_to_3d_pos, delaunay_triangulate_points
+from .maths import geodesic_to_3d_pos, delaunay_triangulate_points, x_y_to_geo_pos_deg
 from .models import Airport
 from .utils import pairs
 
@@ -22,6 +22,63 @@ class AirportState:
         self.timer = 0
 
 
+def disperse_airports_inplace(airports: list[Airport], dt=0):
+    graph = graph_from_airports(airports)
+
+    def q(idx):
+        return np.log2(len(graph[idx]))
+
+    k = 0.04
+    for i, a in enumerate(airports):
+        q1 = q(i)
+        for j, b in enumerate(airports):
+            if i == j:
+                continue
+
+            q2 = q(j)
+
+            r = distance(a.geo_position, b.geo_position).miles
+            assert r != 0
+
+            f = k * q1 * q2 / r ** 2
+            magnitude = (f / q1) * (dt ** 2 / 2)
+            if np.isclose(magnitude, 0):
+                continue
+
+            displacement = (
+                    magnitude
+                    * (v := a.screen_position - b.screen_position)
+                    / np.linalg.norm(v)
+            )
+            lat, lon = x_y_to_geo_pos_deg(*displacement)
+
+            # naive force, wouldn't work like that
+            a.latitude_deg += lat
+            a.longitude_deg += lon
+
+
+def graph_from_airports(airports):
+    points = []
+    for airport in airports:
+        point = geodesic_to_3d_pos(*airport.geo_position, airport.elevation_ft)
+        points.append(point)
+    points = np.array(points)
+
+    hull = delaunay_triangulate_points(points)
+
+    graph = defaultdict(set)
+    for simplex in hull:
+        for i, j in pairs(simplex):
+            graph[i].add(j)
+            graph[j].add(i)
+
+    ret_graph: dict[int, list[int]] = {}
+    for vert in graph:
+        ret_graph[vert] = list(graph[vert])
+
+    return ret_graph
+
+
 class GameState:
     def __init__(self, airports: list[Airport], timestamp: datetime.datetime = None):
         if timestamp is None:
@@ -34,35 +91,8 @@ class GameState:
         self._airports = airports.copy()
         self.timestamp = timestamp
 
-        points = np.array(
-            [
-                geodesic_to_3d_pos(
-                    airport.latitude_deg, airport.longitude_deg, airport.elevation_ft
-                )
-                for airport in airports
-            ]
-        )
-        hull = delaunay_triangulate_points(points)
+        self.graph = graph_from_airports(self._airports)
 
-        graph = defaultdict(set)
-        for simplex in hull:
-            for i, j in pairs(simplex):
-                graph[i].add(j)
-                graph[j].add(i)
-
-        self.graph: dict[int, list[int]] = defaultdict(list)
-        for vert in graph:
-            assert vert not in self.graph[vert]
-
-            def relative_distance_key(rel_to_idx: int):
-                def func(idx: int):
-                    a = points[rel_to_idx]
-                    b = points[idx]
-                    return np.dot(a - b, (a - b).T)
-
-                return func
-
-            self.graph[vert] = sorted(graph[vert], key=relative_distance_key(vert))
         self._distance_cache = dict()
         for v0 in self.graph:
             for v1 in self.graph[v0]:

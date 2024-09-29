@@ -1,4 +1,5 @@
 from enum import Enum
+from string import ascii_letters, digits
 
 import pygame
 
@@ -11,6 +12,9 @@ class CharacterInputResult(Enum):
     Moved = 1
     Accepted = 2
 
+    def __bool__(self):
+        return self != CharacterInputResult.Ignored
+
 
 class Character:
     def __init__(self, location: int):
@@ -21,7 +25,7 @@ class Character:
     def handle_input(
             self, event: pygame.event.Event, game_state: GameState, scene
     ) -> CharacterInputResult:
-        if event.type != pygame.KEYDOWN:
+        if event.type != pygame.KEYDOWN or event.unicode == "":
             return CharacterInputResult.Ignored
 
         if event.key == pygame.K_RETURN:
@@ -55,7 +59,8 @@ class Character:
             else:
                 logger.info(f"May not trap {self.current_location}, already trapped")
         else:
-            if not event.unicode.isspace():
+            char = event.unicode
+            if char in digits + ascii_letters + "-":
                 self.input_text += event.unicode.upper()
                 return CharacterInputResult.Accepted
         return CharacterInputResult.Ignored

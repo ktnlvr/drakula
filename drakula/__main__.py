@@ -62,7 +62,7 @@ def main(*args, **kwargs):
             character.handle_input(event, airports, scene)
             if renderer.handle_event(event):
                 continue
-            if scene.handle_event(renderer, event):
+            if scene.handle_event(event):
                 continue
 
         scene = scene.next_scene

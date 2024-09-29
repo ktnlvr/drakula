@@ -62,24 +62,23 @@ class MapScene(Scene):
             )
 
     def render_airport_network(self, renderer: Renderer):
-        normalized_scroll = self.normalized_horizontal_scroll(renderer)
+        def apply_scroll(arr):
+            normalized_scroll = self.normalized_horizontal_scroll(renderer)
+            return np.array([(arr[0] + normalized_scroll) % 1., arr[1]])
 
         # Draw airport connections
         for i, js in self.state.graph.items():
             airport = self.state.airports[i]
-            a = airport.screen_position
-            a = (a[0] + normalized_scroll) % 1.0, a[1]
+            a = apply_scroll(airport.screen_position)
             for j in js:
                 connected_airports = self.state.airports[j]
-                b = connected_airports.screen_position
-                b = (b[0] + normalized_scroll) % 1.0, b[1]
+                b = apply_scroll(connected_airports.screen_position)
 
                 renderer.draw_line_wrapping(AIRPORT_CONNECTION_COLOR, a, b)
 
         # Draw airport markers
         for idx, state in enumerate(self.state.states):
-            p = state.airport.screen_position
-            p = (p[0] + normalized_scroll) % 1.0, p[1]
+            p = apply_scroll(state.airport.screen_position)
             point_color = AIRPORT_COLOR
             if state.status == AirportStatus.TRAPPED:
                 point_color = AIRPORT_DESTROYED_COLOR
@@ -111,7 +110,7 @@ class MapScene(Scene):
             direction_normalized = direction / np.linalg.norm(direction)
 
             airport_position_screen += direction_normalized * ICAO_AIRPORT_SCREEN_RADIUS
-            airport_position_px = renderer.project(airport_position_screen)
+            airport_position_px = renderer.project(apply_scroll(airport_position_screen))
 
             renderer.surface.blit(icao_text_surface, airport_position_px)
 

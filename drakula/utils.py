@@ -15,7 +15,6 @@ def kwarg_id(argname: str):
 
     return func
 
-
 def pairs(ls):
     length = len(ls)
     for i in range(length - 1):

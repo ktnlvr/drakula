@@ -132,24 +132,3 @@ class GameState:
                     state.status = AirportStatus.AVAILABLE
                     character.trap_count += 1
                     state.timer = 0
-
-    def distance_between(self, idx0: int, idx1: int) -> float:
-        if idx1 > idx0:
-            idx0, idx1 = idx1, idx0
-        pair = (idx0, idx1)
-        if pair in self._distance_cache:
-            p0 = self.airports[idx0].geo_position
-            p1 = self.airports[idx1].geo_position
-            self._distance_cache[pair] = distance(p0, p1).kilometers
-        return self._distance_cache[pair]
-
-    def add_hours(self, hours: int):
-        self.timestamp += datetime.timedelta(hours=hours)
-
-    @property
-    def day_percentage(self) -> float:
-        secs = self.timestamp.second + 60 * (
-                self.timestamp.minute + 60 * self.timestamp.hour
-        )
-        secs_in_day = 86400
-        return secs / secs_in_day

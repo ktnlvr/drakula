@@ -1,6 +1,5 @@
 from collections.abc import Callable, Generator
 from typing import TypeVar
-from logging import getLogger
 
 T = TypeVar("T")
 U = TypeVar("U")
@@ -15,11 +14,6 @@ def kwarg_id(argname: str):
         return kwargs[argname]
 
     return func
-
-
-def flatten(ls: list[list[T]]) -> Generator[T, None, None]:
-    for sublist in ls:
-        yield from sublist
 
 
 def pairs(ls):

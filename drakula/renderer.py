@@ -71,11 +71,12 @@ class Renderer:
         seconds_since_midnight = (
                 now - now.replace(hour=0, minute=0, second=0, microsecond=0)
         ).total_seconds()
-        display = get_screen_size() * 0.9
+
+        screen_size = self.size
 
         mouse_pos = pygame.mouse.get_pos()
         mouse_buttons = pygame.mouse.get_pressed()
-        self.set_uniform("iResolution", [*display, 1.0])
+        self.set_uniform("iResolution", [*screen_size, 1.0])
         self.set_uniform("iTime", self.time)
         self.set_uniform("iTimeDelta", self.delta_time)
         self.set_uniform("iFrame", self.frame_count)
@@ -83,7 +84,7 @@ class Renderer:
             "iMouse",
             (
                 mouse_pos[0],
-                display[1] - mouse_pos[1],
+                screen_size[1] - mouse_pos[1],
                 mouse_buttons[0],
                 mouse_buttons[2],
             ),
@@ -151,6 +152,11 @@ class Renderer:
                 flags |= pygame.FULLSCREEN
             self.fullscreen = pygame.display.set_mode(get_screen_size(), flags)
             return True
+        if event.type == pygame.VIDEORESIZE:
+            screen_size = event.size
+            self.screen = pygame.display.set_mode(screen_size, PYGAME_MODE_FLAGS)
+            self.surface = pygame.Surface(screen_size, flags=pygame.SRCALPHA)
+            self.screen_texture = self.ctx.texture(screen_size, 4)
 
         return False
 

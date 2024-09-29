@@ -35,7 +35,9 @@ class MapScene(Scene):
         super().__init__()
 
         self.state = state
-        self.world_map = pygame.image.load("map.png")
+
+        self.world_map_image = pygame.image.load("map.png")
+
         self.character = character
 
         self.horizontal_scroll_px = 0
@@ -63,18 +65,19 @@ class MapScene(Scene):
         self.horizontal_scroll_px += self.current_scroll_speed * MAP_SCROLL_SPEED_PX_PER_S * dt
 
     def render_world_map(self, renderer: Renderer):
-        self.world_map = pygame.transform.scale(self.world_map, renderer.size)
-        renderer.surface.blit(self.world_map, (0, 0))
+        world_map = pygame.transform.scale(self.world_map_image.copy(), renderer.size)
+
+        renderer.surface.blit(world_map, (0, 0))
 
         self.horizontal_scroll_px %= renderer.size[0]
-        renderer.surface.blit(self.world_map, (self.horizontal_scroll_px, 0))
+        renderer.surface.blit(world_map, (self.horizontal_scroll_px, 0))
         if self.horizontal_scroll_px > 0:
             renderer.surface.blit(
-                self.world_map, (self.horizontal_scroll_px - renderer.size[0], 0)
+                world_map, (self.horizontal_scroll_px - renderer.size[0], 0)
             )
         if self.horizontal_scroll_px < 0:
             renderer.surface.blit(
-                self.world_map, (self.horizontal_scroll_px + renderer.size[0], 0)
+                world_map, (self.horizontal_scroll_px + renderer.size[0], 0)
             )
 
     def render_airport_network(self, renderer: Renderer):

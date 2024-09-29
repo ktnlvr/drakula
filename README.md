@@ -13,6 +13,10 @@ loosely inspired by [Fury Of Dracula (Third/Fourth Edition)](https://boardgamege
 4. Install the module using `pip install -e .`
 5. Run with `python -m drakula`
 
+## Game Loop
+
+![](loop.png)
+
 ## Introduction
 
 This document is meant for internal reference and public display. It contains information about both the requirements

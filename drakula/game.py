@@ -112,7 +112,7 @@ class MapScene(Scene):
 
         current_player_airport = self.state.airports[self.character.current_location]
         connected_airports = self.state.graph[self.character.current_location]
-        airport_icao_name_font = pygame.font.Font(None, 18)
+        airport_icao_name_font = renderer.font(18)
 
         for i, idx in enumerate(connected_airports):
             airport = self.state.airports[idx]
@@ -134,7 +134,7 @@ class MapScene(Scene):
             renderer.surface.blit(icao_text_surface, airport_position_px)
 
     def render_icao_input(self, renderer: Renderer):
-        font = pygame.font.Font(None, 22)
+        font = renderer.font(16)
         input_rect = pygame.Rect()
         input_rect.bottomleft = (
             ICAO_INPUT_PADDING,

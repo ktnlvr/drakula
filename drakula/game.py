@@ -9,6 +9,7 @@ from .renderer import Renderer
 from .scene import Scene
 from .state import GameState, AirportStatus
 
+MAP_SCROLL_ACCELERATION_COEF = 21
 MAP_SCROLL_SPEED_PX_PER_S = 60
 
 AIRPORT_COLOR = pygame.Color(255, 0, 0)
@@ -38,13 +39,28 @@ class MapScene(Scene):
         self.character = character
 
         self.horizontal_scroll_px = 0
+        self.current_scroll_speed = 0
+        self.target_scroll_speed = 0
 
     def render(self, renderer: Renderer):
+        self.update_scroll(renderer)
         self.render_world_map(renderer)
         self.render_airport_network(renderer)
         self.render_icao_input(renderer)
 
         super().render(renderer)
+
+    def update_scroll(self, renderer: Renderer):
+        dt = renderer.delta_time
+
+        # https://youtu.be/LSNQuFEDOyQ?si=UjWW6xscLc3TvTP2&t=2991
+        def exp_decay(a, b, decay):
+            return b + (a - b) * np.exp(-decay * dt)
+
+        lerp_speed = MAP_SCROLL_ACCELERATION_COEF
+        self.current_scroll_speed = exp_decay(self.current_scroll_speed, self.target_scroll_speed, lerp_speed)
+
+        self.horizontal_scroll_px += self.current_scroll_speed * MAP_SCROLL_SPEED_PX_PER_S * dt
 
     def render_world_map(self, renderer: Renderer):
         self.world_map = pygame.transform.scale(self.world_map, renderer.size)
@@ -165,12 +181,16 @@ class MapScene(Scene):
         renderer.surface.blit(status_text, (ICAO_STATUS_PADDING, ICAO_STATUS_PADDING))
 
     def handle_event(self, event: Event) -> bool:
+        self.target_scroll_speed = 0
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT:
-                self.horizontal_scroll_px += 100
+                self.target_scroll_speed += 1
             if event.key == pygame.K_RIGHT:
-                self.horizontal_scroll_px -= 100
-        return super().handle_event(event)
+                self.target_scroll_speed -= 1
+
+        # lazy evaluation ftw
+        # https://docs.python.org/2/reference/expressions.html#boolean-operations
+        return bool(self.target_scroll_speed) or super().handle_event(event)
 
     def normalized_horizontal_scroll(self, renderer) -> float:
         return 0.5 * self.horizontal_scroll_px / renderer.size[1]

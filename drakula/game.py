@@ -134,11 +134,11 @@ class MapScene(Scene):
             renderer.surface.blit(icao_text_surface, airport_position_px)
 
     def render_icao_input(self, renderer: Renderer):
-        font = renderer.font(16)
+        font = renderer.font(18)
         input_rect = pygame.Rect()
         input_rect.bottomleft = (
             ICAO_INPUT_PADDING,
-            pygame.display.get_surface().get_height()
+            renderer.size[1]
             - ICAO_INPUT_PADDING
             - ICAO_INPUT_HEIGHT,
         )

@@ -196,4 +196,4 @@ class MapScene(Scene):
         return bool(self.target_scroll_speed) or super().handle_event(event)
 
     def normalized_horizontal_scroll(self, renderer) -> float:
-        return 0.5 * self.horizontal_scroll_px / renderer.size[1]
+        return self.horizontal_scroll_px / renderer.size[0]

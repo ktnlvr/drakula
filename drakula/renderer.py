@@ -126,86 +126,12 @@ class Renderer:
         else:
             self.draw_line(color, a, b, width)
 
-    def display_cntd_airports(self, scene, renderer):
-        cntd_airports = scene.state.graph[scene.character.current_location]
-        font = pygame.font.Font(None, 18)
-        screen_width = self.surface.get_width()
-        screen_height = self.surface.get_height()
-        positions = []  # To track where we've drawn text
-        text_surfaces = []  # To store text surfaces for hover detection
-
-        for airport_index in cntd_airports:
-            airport = scene.state.states[airport_index].airport
-            if scene.state.states[airport_index].status != AirportStatus.AVAILABLE:
-                continue
-            world_pos = geo_pos_to_screen_pos(
-                airport.latitude_deg, airport.longitude_deg
-            )
-            world_pos = (
-                world_pos[0] * screen_width - 15,
-                world_pos[1] * screen_height - 20,
-            )
-
-            # Check for overlaps and adjust position if necessary
-            while any(
-                    (abs(world_pos[0] - pos[0]) < 10 and abs(world_pos[1] - pos[1]) < 10)
-                    for pos in positions
-            ):
-                world_pos = (world_pos[0] + 10, world_pos[1] + 10)
-
-            # Check if the text is going off-screen and adjust position
-            text_surface = font.render(airport.ident, True, (0, 0, 0))
-            text_rect = text_surface.get_rect(topleft=world_pos)
-
-            # Adjust position if text is off-screen
-            if text_rect.right > screen_width:
-                world_pos = (
-                    screen_width - text_rect.width,
-                    world_pos[1],
-                )  # Align to the right edge
-            if text_rect.bottom > screen_height:
-                world_pos = (
-                    world_pos[0],
-                    screen_height - text_rect.height,
-                )  # Align to the bottom edge
-            if text_rect.left < 0:
-                world_pos = (0, world_pos[1])  # Align to the left edge
-            if text_rect.top < 0:
-                world_pos = (world_pos[0], 0)  # Align to the top edge
-
-            positions.append(world_pos)
-
-            # Render the ICAO code text surface
-            text_surface = font.render(airport.ident, True, (0, 0, 0))
-            text_surfaces.append(
-                (text_surface, world_pos, airport.ident)
-            )  # Store surface, position, and ICAO code
-
-            # Blit the text at the calculated position
-            renderer.surface.blit(text_surface, world_pos)
-
-        # Get the current mouse position
-        mouse_pos = pygame.mouse.get_pos()
-
-        # Check if the mouse is over any airport text surface
-        for text_surface, pos, airport_ident in text_surfaces:
-            text_rect = text_surface.get_rect(
-                topleft=pos
-            )  # Create a rect for the text surface
-            if text_rect.collidepoint(mouse_pos):  # Check if mouse is over the text
-                # Render the text or change color to indicate hover (you can adjust this)
-                hover_surface = font.render(
-                    airport_ident, True, (255, 255, 255)
-                )  # Use the correct ICAO code
-                renderer.surface.blit(hover_surface, pos)
-
     def draw_circle(self, color: pygame.Color, at: Coordinate, radius: float):
         pygame.draw.circle(
             self.surface, color, self.project(at), radius * self.minimal_scalar
         )
 
-    def end(self, scene, renderer):
-        self.display_cntd_airports(scene, renderer)
+    def end(self):
         self.screen_texture.write(self.surface.get_view("1"))
         self.screen_texture.use(0)
         self.set_uniform("texture0", 0)

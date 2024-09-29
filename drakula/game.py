@@ -3,6 +3,8 @@ from .character import Character
 import pygame
 from pygame.event import Event
 
+import numpy as np
+
 from .renderer import Renderer
 from .scene import Scene
 from .state import GameState, AirportStatus
@@ -22,6 +24,9 @@ ICAO_INPUT_WIDTH = 300
 ICAO_INPUT_HEIGHT = 40
 ICAO_INPUT_PADDING = 5
 ICAO_STATUS_PADDING = 10
+
+ICAO_AIRPORT_SCREEN_RADIUS = 0.01
+ICAO_AIRPORT_PLAYER_RADIUS = 0.007
 
 
 class MapScene(Scene):
@@ -80,10 +85,35 @@ class MapScene(Scene):
                 point_color = AIRPORT_DESTROYED_COLOR
             elif state.status == AirportStatus.DESTROYED:
                 point_color = AIRPORT_DESTROYED_COLOR
-            renderer.draw_circle(point_color, p, 0.01)
+            renderer.draw_circle(point_color, p, ICAO_AIRPORT_SCREEN_RADIUS)
 
             if idx == self.character.current_location:
-                renderer.draw_circle(CURRENT_AIRPORT_HIGHLIGHT_COLOR, p, 0.007)
+                renderer.draw_circle(
+                    CURRENT_AIRPORT_HIGHLIGHT_COLOR, p, ICAO_AIRPORT_PLAYER_RADIUS
+                )
+
+        current_player_airport = self.state.airports[self.character.current_location]
+        connected_airports = self.state.graph[self.character.current_location]
+        airport_icao_name_font = pygame.font.Font(None, 18)
+
+        for i, idx in enumerate(connected_airports):
+            airport = self.state.airports[idx]
+            icao_text_surface = airport_icao_name_font.render(
+                airport.ident, True, (0, 0, 0)
+            )
+            airport_position_px = renderer.project(airport.screen_position)
+            airport_position_px -= np.array(icao_text_surface.get_size()) / 2
+
+            airport_position_screen = renderer.unproject(airport_position_px)
+            player_airport_position_screen = current_player_airport.screen_position
+
+            direction = airport_position_screen - player_airport_position_screen
+            direction_normalized = direction / np.linalg.norm(direction)
+
+            airport_position_screen += direction_normalized * ICAO_AIRPORT_SCREEN_RADIUS
+            airport_position_px = renderer.project(airport_position_screen)
+
+            renderer.surface.blit(icao_text_surface, airport_position_px)
 
     def render_icao_input(self, renderer: Renderer):
         font = pygame.font.Font(None, 22)
@@ -134,62 +164,6 @@ class MapScene(Scene):
         status_surface.fill(ICAO_STATUS_BAR_COLOR)
         renderer.surface.blit(status_surface, status_rect)
         renderer.surface.blit(status_text, (ICAO_STATUS_PADDING, ICAO_STATUS_PADDING))
-
-    def display_connected_airports(self, renderer):
-        cntd_airports = self.state.graph[self.character.current_location]
-        font = pygame.font.Font(None, 18)
-        screen_width = renderer.surface.get_width()
-        screen_height = renderer.surface.get_height()
-        positions = []  # To track where we've drawn text
-        text_surfaces = []  # To store text surfaces for hover detection
-
-        for airport_index in cntd_airports:
-            airport = self.state.states[airport_index].airport
-            if self.state.states[airport_index].status != AirportStatus.AVAILABLE:
-                continue
-            screen_pos = airport.screen_position
-            screen_pos = (
-                screen_pos[0] * screen_width - 15,
-                screen_pos[1] * screen_height - 20,
-            )
-
-            # Check for overlaps and adjust position if necessary
-            while any(
-                    (abs(screen_pos[0] - pos[0]) < 10 and abs(screen_pos[1] - pos[1]) < 10)
-                    for pos in positions
-            ):
-                screen_pos = (screen_pos[0] + 10, screen_pos[1] + 10)
-
-            # Check if the text is going off-screen and adjust position
-            text_surface = font.render(airport.ident, True, (0, 0, 0))
-            text_rect = text_surface.get_rect(topleft=screen_pos)
-
-            # Adjust position if text is off-screen
-            if text_rect.right > screen_width:
-                screen_pos = (
-                    screen_width - text_rect.width,
-                    screen_pos[1],
-                )  # Align to the right edge
-            if text_rect.bottom > screen_height:
-                screen_pos = (
-                    screen_pos[0],
-                    screen_height - text_rect.height,
-                )  # Align to the bottom edge
-            if text_rect.left < 0:
-                screen_pos = (0, screen_pos[1])  # Align to the left edge
-            if text_rect.top < 0:
-                screen_pos = (screen_pos[0], 0)  # Align to the top edge
-
-            positions.append(screen_pos)
-
-            # Render the ICAO code text surface
-            text_surface = font.render(airport.ident, True, (0, 0, 0))
-            text_surfaces.append(
-                (text_surface, screen_pos, airport.ident)
-            )  # Store surface, position, and ICAO code
-
-            # Blit the text at the calculated position
-            renderer.surface.blit(text_surface, screen_pos)
 
     def handle_event(self, event: Event) -> bool:
         if event.type == pygame.KEYDOWN:

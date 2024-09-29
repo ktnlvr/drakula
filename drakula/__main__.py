@@ -62,7 +62,7 @@ def main(*args, **kwargs):
                 continue
 
         scene = scene.next_scene
-        renderer.end(scene,renderer)
+        renderer.end()
 
     pygame.quit()
 

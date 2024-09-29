@@ -2,7 +2,8 @@ from enum import Enum
 
 import pygame
 
-from .state import GameState
+from .state import GameState, AirportStatus
+from .logging import logger
 
 
 class CharacterInputResult(Enum):
@@ -14,10 +15,11 @@ class CharacterInputResult(Enum):
 class Character:
     def __init__(self, location: int):
         self.current_location = location
+        self.trap_count = 4
         self.input_text = ""
 
     def handle_input(
-            self, event: pygame.event.Event, game_state: GameState
+            self, event: pygame.event.Event, game_state: GameState, scene
     ) -> CharacterInputResult:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN:
@@ -30,13 +32,31 @@ class Character:
                         or idx not in game_state.graph[self.current_location]
                 ):
                     return CharacterInputResult.Accepted
+                if (scene.state.states[idx].status != AirportStatus.AVAILABLE):
+                    return CharacterInputResult.Accepted
                 self.current_location = idx
                 return CharacterInputResult.Moved
             elif event.key == pygame.K_BACKSPACE:
                 self.input_text = self.input_text[:-1]
                 return CharacterInputResult.Accepted
             elif event.key == pygame.K_KP_ENTER:
-                game_state.trap_location(self.current_location)
+                if self.trap_count == 0:
+                    logger.info(
+                        f"Trapping rejected {self.current_location}, 0 traps left"
+                    )
+                elif (
+                        game_state.states[self.current_location].status
+                        != AirportStatus.TRAPPED
+                ):
+                    self.trap_count -= 1
+                    game_state.trap_location(self.current_location)
+                    logger.info(
+                        f"Trapped {self.current_location} successful, {self.trap_count} traps left"
+                    )
+                else:
+                    logger.info(
+                        f"May not trap {self.current_location}, already trapped"
+                    )
             else:
                 if not event.unicode.isspace():
                     self.input_text += event.unicode.upper()

@@ -3,6 +3,8 @@ from numpy.typing import NDArray
 
 from pydantic import BaseModel, PositiveInt, field_validator
 
+from drakula.maths import geo_pos_to_screen_pos
+
 
 class Airport(BaseModel):
     id: PositiveInt
@@ -29,5 +31,9 @@ class Airport(BaseModel):
         return value
 
     @property
-    def position(self) -> NDArray[(2,)]:
+    def geo_position(self) -> NDArray[(2,)]:
         return np.array([self.latitude_deg, self.longitude_deg])
+
+    @property
+    def screen_position(self) -> NDArray[(2,)]:
+        return geo_pos_to_screen_pos(*self.geo_position)

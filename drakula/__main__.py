@@ -1,7 +1,9 @@
 import dotenv
 import pygame
 from numpy.random import choice
+from logging import basicConfig, DEBUG
 
+from .logging import logger
 from .db import create_database_facade
 from .character import Character, CharacterInputResult
 from .dracula import DraculaBrain
@@ -44,15 +46,16 @@ def main(*args, **kwargs):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            if result := character.handle_input(event, state):
+            if result := character.handle_input(event, state, scene):
                 if result == CharacterInputResult.Moved:
-                    state.add_timer_for_traps()
+                    state.add_timer_for_traps(character)
                     # TODO: make this less confusing
                     state.dracula_location = choice(
                         [x for _, x in moves], 1, p=[p for p, _ in moves]
                     )[0]
                     state.dracula_trail += [state.dracula_location]
                 continue
+            character.handle_input(event, airports, scene)
             if renderer.handle_event(event):
                 continue
             if scene.handle_event(renderer, event):
@@ -66,4 +69,6 @@ def main(*args, **kwargs):
 
 if __name__ == "__main__":
     dotenv.load_dotenv()
+    basicConfig()
+    logger.setLevel(DEBUG)
     main()

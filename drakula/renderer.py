@@ -4,7 +4,10 @@ from typing import Tuple, Optional
 import moderngl
 import numpy as np
 import pygame
-
+from .maths import (
+    geo_pos_to_screen_pos,
+)
+from .state import AirportStatus
 from .utils import load_shader
 
 Coordinate = Tuple[float, float]

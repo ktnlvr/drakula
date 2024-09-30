@@ -136,7 +136,7 @@ class MapScene(Scene):
 
     def render_icao_input(self, renderer: Renderer):
         font = renderer.font(18)
-        input_rect = pygame.Rect()
+        input_rect = pygame.Rect(0, 0, 0, 0)
         input_rect.bottomleft = (
             ICAO_INPUT_PADDING,
             renderer.size[1]

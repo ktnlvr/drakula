@@ -128,7 +128,7 @@ class Renderer:
             self.surface, color, self.project(at), radius * self.minimal_scalar
         )
 
-    def font(self, size) -> pygame.Font:
+    def font(self, size) -> pygame.font.Font:
         size = size / get_screen_size()[0]
         return pygame.font.Font(None, round(2 * size * self.minimal_scalar))
 

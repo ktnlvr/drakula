@@ -59,7 +59,7 @@ def main(*args, **kwargs):
                     )[0]
                     state.dracula_trail += [state.dracula_location]
                 continue
-            character.handle_input(event, airports, scene)
+            character.handle_input(event, state, scene)
             if renderer.handle_event(event):
                 continue
             if scene.handle_event(event):

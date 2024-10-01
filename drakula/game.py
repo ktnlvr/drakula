@@ -1,3 +1,5 @@
+from idlelib.format import get_comment_header
+
 from .character import Character
 
 import pygame
@@ -49,6 +51,7 @@ class MapScene(Scene):
         self.render_world_map(renderer)
         self.render_airport_network(renderer)
         self.render_icao_input(renderer)
+        self.render_dracula_near_warning(renderer)
 
         super().render(renderer)
 
@@ -183,6 +186,17 @@ class MapScene(Scene):
         status_surface.fill(ICAO_STATUS_BAR_COLOR)
         renderer.surface.blit(status_surface, status_rect)
         renderer.surface.blit(status_text, (ICAO_STATUS_PADDING, ICAO_STATUS_PADDING))
+
+    def render_dracula_near_warning(self, renderer: Renderer):
+        if not self.state.is_dracula_near_trap():
+            return
+        warning_message = "Your traps sense a spooky presence"
+        font = renderer.font(36)
+        text_surface = font.render(warning_message, True, (255, 0, 0))
+        text_width, text_height = np.array([*text_surface.get_size()]) / renderer.size
+        text_x = 1 - text_width
+        text_y = 1 - text_height
+        renderer.blit(text_surface, (text_x, text_y))
 
     def handle_event(self, event: Event) -> bool:
         self.target_scroll_speed = 0

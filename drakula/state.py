@@ -132,3 +132,9 @@ class GameState:
                     state.status = AirportStatus.AVAILABLE
                     character.trap_count += 1
                     state.timer = 0
+
+    def is_dracula_near_trap(self) -> bool:
+        for vert in self.graph[self.dracula_location]:
+            if self.states[vert].status == AirportStatus.TRAPPED:
+                return True
+        return False

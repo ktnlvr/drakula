@@ -34,6 +34,7 @@ def main(*args, **kwargs):
     pygame.display.set_icon(icon)
 
     character = Character(0)
+    state = GameState(airports, character.current_location)
     scene: Scene = MapScene(state, character)
 
     brain = DraculaBrain()

@@ -105,10 +105,10 @@ class GameState:
 
         vertices = set(range(len(self._airports)))
         for v in banned_vertices:
-            vertices.remove(v)
+            if v in vertices:
+                vertices.remove(v)
         assert len(vertices) != 0
         self.dracula_location = np.random.choice(list(vertices), 1)[0]
-        print(airports[self.dracula_location].ident)
         self.dracula_trail = [self.dracula_location]
 
     @property

@@ -44,6 +44,8 @@ def main(*args, **kwargs):
         dracula_location = state.dracula_location
         dracula_icao = state.airports[dracula_location].ident
         renderer.display_dracula_location(dracula_icao)
+
+        renderer.display_destroyed_airports(state.destroyed_airports)
         idx = state.get_index(character.input_text)
 
         if game_over:
@@ -88,7 +90,7 @@ def main(*args, **kwargs):
                     if dracula_next_move != state.dracula_location:
                         state.dracula_location = dracula_next_move
                         state.dracula_trail.append(state.dracula_location)
-                        state.destroyed_airports.add(state.dracula_location)
+                        state.destroyed_airports.add(dracula_icao)
 
                 if state.destroyed_airports_count / len(state.airports) >= 0.5:
                     result = "Lose"

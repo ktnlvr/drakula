@@ -33,9 +33,10 @@ class Renderer:
     def __init__(self, screen_size: Optional[Tuple[int, int]] = None):
         pygame.init()
         pygame.font.init()
-        self.result_font = pygame.font.SysFont('Arial', 60, bold=True)
-        self.option_font = pygame.font.SysFont('Arial', 40)
-        self.info_font = pygame.font.SysFont('Arial', 30)
+        self.scaling_factor = screen_size[0] / 1280
+        self.result_font = self.scaled_font('Arial', 60, bold=True)
+        self.option_font = self.scaled_font('Arial', 40)
+        self.info_font = self.scaled_font('Arial', 15)
 
         if screen_size is None:
             screen_size = get_screen_size()
@@ -63,6 +64,9 @@ class Renderer:
         self.time = 0
         self.delta_time = 0
         self.frame_count = 0
+
+    def scaled_font(self, font_name: str, size: int, bold: bool = False) -> pygame.font.Font:
+            return pygame.font.SysFont(font_name, int(size * self.scaling_factor), bold)
 
     def blit(self, source: pygame.Surface, at: Coordinate):
         self.surface.blit(source, self.project(at))
@@ -142,6 +146,16 @@ class Renderer:
         x_position = screen_width - text_rect.width - 10
         y_position = screen_height - text_rect.height - 10
         self.surface.blit(dra_text, (x_position, y_position))
+
+    def display_destroyed_airports(self, destroyed_airports: set):
+        filtered_airports = [str(airport) for airport in destroyed_airports if airport != 0]
+        destroyed_airports_str = ', '.join(str(airport) for airport in filtered_airports)
+        destroyed_text = self.info_font.render(f"Destroyed Airports: {destroyed_airports_str}", True, (0, 0, 255))
+        text_rect = destroyed_text.get_rect()
+        screen_width, screen_height = self.surface.get_size()
+        x_position = (screen_width - text_rect.width) // 2
+        y_position = screen_height - text_rect.height - 10
+        self.surface.blit(destroyed_text, (x_position, y_position))
 
     def display_result(self, result: str):
         box_width, box_height = 700, 350

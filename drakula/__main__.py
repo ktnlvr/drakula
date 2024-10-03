@@ -40,14 +40,11 @@ def main(*args, **kwargs):
         scene = scene.next_scene
         scene.render(renderer)
 
-        dracula_location = state.dracula_location
-        airport_name = state.airports[dracula_location].ident
-        renderer.display_dracula_location(airport_name)
-
         #just for testing
         dracula_location = state.dracula_location
         dracula_icao = state.airports[dracula_location].ident
         renderer.display_dracula_location(dracula_icao)
+        idx = state.get_index(character.input_text)
 
         if game_over:
             renderer.display_result(result)
@@ -73,28 +70,25 @@ def main(*args, **kwargs):
                     break
 
                 character_input = character.handle_input(event, state)
-                if character_input == CharacterInputResult.Moved or character_input == CharacterInputResult.Accepted:
+                if character_input == CharacterInputResult.Moved:
 
-                    input_icao = character.input_text.strip()
-
-                    if input_icao == dracula_icao:
+                    if idx == dracula_location:
                         result = "Win"
                         game_over = True
                         break
 
-                    if character_input == CharacterInputResult.Moved:
-                        state.add_timer_for_traps()
+                    state.add_timer_for_traps()
 
-                        dracula_next_move = choice(
-                            [x for _, x in dracula.list_moves(state, state.dracula_location)],
-                            1,
-                            p=[p for p, _ in dracula.list_moves(state, state.dracula_location)]
-                        )[0]
+                    dracula_next_move = choice(
+                        [x for _, x in dracula.list_moves(state, state.dracula_location)],
+                        1,
+                        p=[p for p, _ in dracula.list_moves(state, state.dracula_location)]
+                    )[0]
 
-                        if dracula_next_move != state.dracula_location:
-                            state.dracula_location = dracula_next_move
-                            state.dracula_trail.append(state.dracula_location)
-                            state.destroyed_airports.add(state.dracula_location)
+                    if dracula_next_move != state.dracula_location:
+                        state.dracula_location = dracula_next_move
+                        state.dracula_trail.append(state.dracula_location)
+                        state.destroyed_airports.add(state.dracula_location)
 
                 if state.destroyed_airports_count / len(state.airports) >= 0.5:
                     result = "Lose"

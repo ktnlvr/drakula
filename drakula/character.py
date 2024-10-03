@@ -4,12 +4,10 @@ import pygame
 
 from .state import GameState
 
-
 class CharacterInputResult(Enum):
     Ignored = 0
     Moved = 1
     Accepted = 2
-
 
 class Character:
     def __init__(self, location: int):

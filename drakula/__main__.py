@@ -8,10 +8,10 @@ from .logging import logger
 from .db import create_database_facade
 from .character import Character, CharacterInputResult
 from .dracula import DraculaBrain
-from .game import MapScene
+from .game import MapScene, GameOverScene, GameOverKind
 from .renderer import Renderer
 from .scene import Scene
-from .state import GameState, disperse_airports_inplace
+from .state import GameState, disperse_airports_inplace, AirportStatus
 
 AIRPORT_DISPERSION_STEPS = 32
 
@@ -52,23 +52,31 @@ def main(*args, **kwargs):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            if result := character.handle_input(event, state, scene):
-                if result == CharacterInputResult.Moved:
-                    state.add_timer_for_traps(character)
-                    # TODO: make this less confusing
-                    if not state.dracula_on_trap():
-                        state.dracula_location = choice(
-                            [x for _, x in moves], 1, p=[p for p, _ in moves]
-                        )[0]
-                        state.dracula_trail += [state.dracula_location]
-                continue
-            character.handle_input(event, state, scene)
-            if renderer.handle_event(event):
-                continue
             if scene.handle_event(event):
                 continue
+            if result := character.handle_input(event, state, scene):
+                if result == CharacterInputResult.Moved:
+                    if state.dracula_location == character.current_location:
+                        scene = GameOverScene(scene, GameOverKind.WIN)
+                        continue
 
-        scene = scene.next_scene
+                    state.add_timer_for_traps(character)
+                    # TODO: make this less confusing
+                    state.states[state.dracula_location].status = AirportStatus.DESTROYED
+                    state.dracula_location = choice(
+                        [x for _, x in moves], 1, p=[p for p, _ in moves]
+                    )[0]
+                    state.states[state.dracula_location].status = AirportStatus.DESTROYED
+                    state.destroyed_airports.add(state.dracula_location)
+
+                    if state.dracula_location == character.current_location:
+                        scene = GameOverScene(scene, GameOverKind.LOSS)
+                        continue
+
+
+            if renderer.handle_event(event):
+                continue
+
         renderer.end()
 
     pygame.quit()

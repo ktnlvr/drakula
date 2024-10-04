@@ -115,6 +115,7 @@ class GameState:
         assert len(vertices) != 0
         self.dracula_location = np.random.choice(list(vertices), 1)[0]
         self.dracula_trail = [self.dracula_location]
+        self.destroyed_airports = set(self.dracula_trail)
 
     @property
     def airports(self) -> list[Airport]:

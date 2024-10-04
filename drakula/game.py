@@ -1,16 +1,18 @@
 from idlelib.format import get_comment_header
 from sre_parse import State
-
 from .character import Character
 
 import pygame
 from pygame.event import Event
+from enum import Enum
+from typing import Optional, List
 
 import numpy as np
 
 from .renderer import Renderer
 from .scene import Scene
 from .state import GameState, AirportStatus
+
 
 MAP_SCROLL_ACCELERATION_COEFFICIENT = 21
 MAP_SCROLL_SPEED_PERCENT_PER_S = 25
@@ -210,3 +212,87 @@ class MapScene(Scene):
 
     def normalized_horizontal_scroll(self, renderer) -> float:
         return self.horizontal_scroll_px / renderer.size[0]
+
+
+# TODO: bad name, rename me?
+class GameOverKind(Enum):
+    WIN = 1
+    LOSS = 0
+
+
+class GameOverScene(Scene):
+    def __init__(self, previous_scene: Scene, kind: GameOverKind,state: Optional[GameState] = None):
+        super().__init__()
+        self.previous_scene = previous_scene
+        self.result_kind = kind
+        self.state = state or getattr(previous_scene, 'state', None)
+
+    def wrap_text(self, text: str, font: pygame.font.Font, max_width: int) -> List[str]:
+        words = text.split()
+        lines = []
+        current_line = []
+
+        for word in words:
+            current_line.append(word)
+            test_line = ' '.join(current_line)
+            if font.size(test_line)[0] > max_width:
+                current_line.pop()
+                lines.append(' '.join(current_line))
+                current_line = [word]
+
+        if current_line:
+            lines.append(' '.join(current_line))
+
+        return lines
+
+    def render(self, renderer: Renderer):
+        self.previous_scene.render(renderer)
+        self.display_result(renderer)
+
+    def display_result(self, renderer: Renderer):
+        result_font = renderer.font(60)
+        option_font =  renderer.font(20)
+
+        box_width, box_height = 700, 350
+        screen_width, screen_height = renderer.surface.get_size()
+        box_x = (screen_width - box_width) // 2
+        box_y = (screen_height - box_height) // 2
+        box_surface = pygame.Surface((box_width, box_height), pygame.SRCALPHA)
+        pygame.draw.rect(box_surface, (0, 0, 0, 200), box_surface.get_rect(), border_radius=20)
+
+        if self.result_kind == GameOverKind.WIN:
+            result_text = result_font.render("You Caught Dracula!", True, (0, 255, 0))
+        elif self.result_kind == GameOverKind.LOSS:
+            result_text = result_font.render("Game Over", True, (255, 0, 0))
+        else:
+            result_text = result_font.render("Game Over", True, (255, 255, 255))
+
+        result_rect = result_text.get_rect(center= (box_width // 2, box_height // 3))
+        box_surface.blit(result_text, result_rect)
+
+        title_text = option_font.render("Dracula Destroyed Airports:", True, (255, 215, 0))
+        title_rect = title_text.get_rect(midtop=(box_width // 2, result_rect.bottom + 10))
+        box_surface.blit(title_text, title_rect)
+
+        if self.state and self.state.destroyed_airports:
+            filtered_airports = [
+                self.state.airports[airport_index].ident
+                for airport_index in self.state.destroyed_airports
+                if airport_index != 0
+            ]
+            destroyed_airports_str = ', '.join(filtered_airports)
+            wrapped_lines = self.wrap_text(destroyed_airports_str, option_font, box_width - 20)  # Adjust for padding
+
+            y_position = box_height // 2
+            line_spacing = 5
+            for line in wrapped_lines:
+                options_text = option_font.render(line, True, (0, 0, 255))
+                options_rect = options_text.get_rect(midtop=(box_width // 2, y_position))
+                box_surface.blit(options_text, options_rect)
+                y_position += options_text.get_height() + line_spacing
+
+        border_rect = box_surface.get_rect()
+        pygame.draw.rect(box_surface, (255, 215, 0), border_rect, width=1, border_radius=20)
+        renderer.surface.blit(box_surface, (box_x, box_y))
+
+

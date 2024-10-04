@@ -4,7 +4,8 @@ from typing import Tuple, Optional
 import moderngl
 import numpy as np
 import pygame
-from .utils import load_shader, load_texture
+from .utils import load_shader
+from .character import CharacterInputResult
 
 Coordinate = Tuple[float, float]
 

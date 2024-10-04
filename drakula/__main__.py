@@ -8,7 +8,7 @@ from .logging import logger
 from .db import create_database_facade
 from .character import Character, CharacterInputResult
 from .dracula import DraculaBrain
-from .game import MapScene
+from .game import MapScene, GameOverScene, GameOverKind
 from .renderer import Renderer
 from .scene import Scene
 from .state import GameState, disperse_airports_inplace
@@ -45,7 +45,6 @@ def main(*args, **kwargs):
     while running:
         renderer.begin()
 
-        scene = scene.next_scene
         scene.render(renderer)
 
         moves = brain.list_moves(state, state.dracula_location)
@@ -55,20 +54,26 @@ def main(*args, **kwargs):
                 running = False
             if result := character.handle_input(event, state, scene):
                 if result == CharacterInputResult.Moved:
+                    if state.dracula_location == character.current_location:
+                        scene = GameOverScene(GameOverKind.WIN)
+                        continue
+
                     state.add_timer_for_traps(character)
+
                     # TODO: make this less confusing
                     state.dracula_location = choice(
                         [x for _, x in moves], 1, p=[p for p, _ in moves]
                     )[0]
                     state.dracula_trail += [state.dracula_location]
-                continue
-            character.handle_input(event, airports, scene)
+
+                    if state.dracula_location == character.current_location:
+                        scene = GameOverScene(GameOverKind.LOSS)
+                        continue
             if renderer.handle_event(event):
                 continue
             if scene.handle_event(event):
                 continue
 
-        scene = scene.next_scene
         renderer.end()
 
     pygame.quit()

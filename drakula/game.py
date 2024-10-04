@@ -1,13 +1,13 @@
-from .character import Character
-
 import pygame
 from pygame.event import Event
+from enum import Enum
 
 import numpy as np
 
 from .renderer import Renderer
 from .scene import Scene
 from .state import GameState, AirportStatus
+from .character import Character
 
 MAP_SCROLL_ACCELERATION_COEFFICIENT = 21
 MAP_SCROLL_SPEED_PERCENT_PER_S = 25
@@ -60,10 +60,16 @@ class MapScene(Scene):
             return b + (a - b) * np.exp(-decay * dt)
 
         lerp_speed = MAP_SCROLL_ACCELERATION_COEFFICIENT
-        self.current_scroll_speed = exp_decay(self.current_scroll_speed, self.target_scroll_speed, lerp_speed)
+        self.current_scroll_speed = exp_decay(
+            self.current_scroll_speed, self.target_scroll_speed, lerp_speed
+        )
 
-        horizontal_scroll_px_per_s = renderer.size[0] * MAP_SCROLL_SPEED_PERCENT_PER_S / 100
-        self.horizontal_scroll_px += self.current_scroll_speed * horizontal_scroll_px_per_s * dt
+        horizontal_scroll_px_per_s = (
+                renderer.size[0] * MAP_SCROLL_SPEED_PERCENT_PER_S / 100
+        )
+        self.horizontal_scroll_px += (
+                self.current_scroll_speed * horizontal_scroll_px_per_s * dt
+        )
 
     def render_world_map(self, renderer: Renderer):
         world_map = pygame.transform.scale(self.world_map_image.copy(), renderer.size)
@@ -84,7 +90,7 @@ class MapScene(Scene):
     def render_airport_network(self, renderer: Renderer):
         def apply_scroll(arr):
             normalized_scroll = self.normalized_horizontal_scroll(renderer)
-            return np.array([(arr[0] + normalized_scroll) % 1., arr[1]])
+            return np.array([(arr[0] + normalized_scroll) % 1.0, arr[1]])
 
         # Draw airport connections
         for i, js in self.state.graph.items():
@@ -130,7 +136,9 @@ class MapScene(Scene):
             direction_normalized = direction / np.linalg.norm(direction)
 
             airport_position_screen += direction_normalized * ICAO_AIRPORT_SCREEN_RADIUS
-            airport_position_px = renderer.project(apply_scroll(airport_position_screen))
+            airport_position_px = renderer.project(
+                apply_scroll(airport_position_screen)
+            )
 
             renderer.surface.blit(icao_text_surface, airport_position_px)
 
@@ -139,9 +147,7 @@ class MapScene(Scene):
         input_rect = pygame.Rect(0, 0, 0, 0)
         input_rect.bottomleft = (
             ICAO_INPUT_PADDING,
-            renderer.size[1]
-            - ICAO_INPUT_PADDING
-            - ICAO_INPUT_HEIGHT,
+            renderer.size[1] - ICAO_INPUT_PADDING - ICAO_INPUT_HEIGHT,
         )
         input_rect.width = ICAO_INPUT_WIDTH
         input_rect.height = ICAO_INPUT_HEIGHT
@@ -198,3 +204,17 @@ class MapScene(Scene):
 
     def normalized_horizontal_scroll(self, renderer) -> float:
         return self.horizontal_scroll_px / renderer.size[0]
+
+
+# TODO: bad name, rename me?
+class GameOverKind(Enum):
+    WIN = 1
+    LOSS = 0
+
+
+class GameOverScene(Scene):
+    def __init__(self, kind: GameOverKind):
+        self.kind = GameOverKind
+
+    def render(self, renderer: Renderer):
+        print(self.kind)

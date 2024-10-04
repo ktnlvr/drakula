@@ -14,9 +14,5 @@ class Scene(ABC):
     @abstractmethod
     def render(self, renderer: Renderer): ...
 
-    @property
-    def next_scene(self) -> "Scene":
-        return self
-
     def handle_event(self, _: pygame.event.Event) -> bool:
         return False

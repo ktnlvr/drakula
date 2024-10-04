@@ -4,7 +4,7 @@ from enum import Enum
 import numpy as np
 from geopy.distance import distance
 
-from .maths import geodesic_to_3d_pos, delaunay_triangulate_points
+from .maths import geodesic_to_3d_pos, delaunay_triangulate_points, x_y_to_geo_pos_deg
 from .models import Airport
 from .utils import pairs
 
@@ -19,10 +19,69 @@ class AirportState:
     def __init__(self, airport, status):
         self.airport = airport
         self.status = status
-        self.timer = 0
+        self.trapped_timer = 0
+        self.destroyed_timer = 0
+
+
+def disperse_airports_inplace(airports: list[Airport], dt=0):
+    graph = graph_from_airports(airports)
+
+    def q(idx):
+        return np.log2(len(graph[idx]))
+
+    k = 0.04
+    for i, a in enumerate(airports):
+        q1 = q(i)
+        for j, b in enumerate(airports):
+            if i == j:
+                continue
+
+            q2 = q(j)
+
+            r = distance(a.geo_position, b.geo_position).miles
+            assert r != 0
+
+            f = k * q1 * q2 / r ** 2
+            magnitude = (f / q1) * (dt ** 2 / 2)
+            if np.isclose(magnitude, 0):
+                continue
+
+            displacement = (
+                    magnitude
+                    * (v := a.screen_position - b.screen_position)
+                    / np.linalg.norm(v)
+            )
+            lat, lon = x_y_to_geo_pos_deg(*displacement)
+
+            # naive force, wouldn't work like that
+            a.latitude_deg += lat
+            a.longitude_deg += lon
+
+
+def graph_from_airports(airports):
+    points = []
+    for airport in airports:
+        point = geodesic_to_3d_pos(*airport.geo_position, airport.elevation_ft)
+        points.append(point)
+    points = np.array(points)
+
+    hull = delaunay_triangulate_points(points)
+
+    graph = defaultdict(set)
+    for simplex in hull:
+        for i, j in pairs(simplex):
+            graph[i].add(j)
+            graph[j].add(i)
+
+    ret_graph: dict[int, list[int]] = {}
+    for vert in graph:
+        ret_graph[vert] = list(graph[vert])
+
+    return ret_graph
+
 
 class GameState:
-    def __init__(self, airports: list[Airport], timestamp: datetime.datetime = None):
+    def __init__(self, airports: list[Airport], player_start_location: int, timestamp: datetime.datetime = None):
         if timestamp is None:
             timestamp = datetime.datetime.now()
 
@@ -33,49 +92,24 @@ class GameState:
         self._airports = airports.copy()
         self.timestamp = timestamp
 
-        points = np.array(
-            [
-                geodesic_to_3d_pos(
-                    airport.latitude_deg, airport.longitude_deg, airport.elevation_ft
-                )
-                for airport in airports
-            ]
-        )
-        hull = delaunay_triangulate_points(points)
+        self.graph = graph_from_airports(self._airports)
 
-        graph = defaultdict(set)
-        for simplex in hull:
-            for i, j in pairs(simplex):
-                graph[i].add(j)
-                graph[j].add(i)
+        # TODO: refactor me
+        min_degree_of_separation = 3
+        banned_vertices = [player_start_location]
+        for i in range(min_degree_of_separation - 1):
+            new_banned = []
+            for v in banned_vertices:
+                for neighbour in self.graph[v]:
+                    new_banned.append(neighbour)
+            banned_vertices.extend(new_banned)
 
-        self.graph: dict[int, list[int]] = defaultdict(list)
-        for vert in graph:
-            assert vert not in self.graph[vert]
-
-            def relative_distance_key(rel_to_idx: int):
-                def func(idx: int):
-                    a = points[rel_to_idx]
-                    b = points[idx]
-                    return np.dot(a - b, (a - b).T)
-
-                return func
-
-            self.graph[vert] = sorted(graph[vert], key=relative_distance_key(vert))
-        self._distance_cache = dict()
-        for v0 in self.graph:
-            for v1 in self.graph[v0]:
-                # to simplify the cache use symmetry of distances
-                if v1 > v0:
-                    v0, v1 = v1, v0
-                p0 = airports[v0].position
-                p1 = airports[v1].position
-                self._distance_cache[(v0, v1)] = distance(p0, p1).kilometers
-
-        # TODO: choose a better dracula location
-        self.dracula_location = 0
-        self.dracula_trail = [self.dracula_location]
-        self.destroyed_airports = set(self.dracula_trail)
+        vertices = set(range(len(self._airports)))
+        for v in banned_vertices:
+            if v in vertices:
+                vertices.remove(v)
+        assert len(vertices) != 0
+        self.dracula_location = np.random.choice(list(vertices), 1)[0]
 
     @property
     def airports(self) -> list[Airport]:
@@ -94,35 +128,11 @@ class GameState:
         ):
             self.states[index].status = AirportStatus.TRAPPED
 
-    def add_timer_for_traps(self):
+    def add_timer_for_traps(self, character):
         for state in self.states:
             if state.status == AirportStatus.TRAPPED:
-                state.timer = state.timer + 1
-                if state.timer > 3:
+                state.trapped_timer = state.trapped_timer + 1
+                if state.trapped_timer > 3:
                     state.status = AirportStatus.AVAILABLE
-                    state.timer = 0
-
-    def distance_between(self, idx0: int, idx1: int) -> float:
-        if idx1 > idx0:
-            idx0, idx1 = idx1, idx0
-        pair = (idx0, idx1)
-        if pair in self._distance_cache:
-            p0 = self.airports[idx0].position
-            p1 = self.airports[idx1].position
-            self._distance_cache[pair] = distance(p0, p1).kilometers
-        return self._distance_cache[pair]
-
-    def add_hours(self, hours: int):
-        self.timestamp += datetime.timedelta(hours=hours)
-
-    @property
-    def day_percentage(self) -> float:
-        secs = self.timestamp.second + 60 * (
-                self.timestamp.minute + 60 * self.timestamp.hour
-        )
-        secs_in_day = 86400
-        return secs / secs_in_day
-
-    @property
-    def destroyed_airports_count(self):
-        return len(self.destroyed_airports)
+                    character.trap_count += 1
+                    state.trapped_timer = 0

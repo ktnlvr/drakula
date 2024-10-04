@@ -1,5 +1,10 @@
 # drakula
 
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
+A third-person single-player strategic vampire hunting game
+loosely inspired by [Fury Of Dracula (Third/Fourth Edition)](https://boardgamegeek.com/boardgame/181279/fury-of-dracula-thirdfourth-edition).
+
 ## Installation
 
 1. Clone the repository `git clone github.com/ktnlvr/drakula`
@@ -8,114 +13,122 @@
 4. Install the module using `pip install -e .`
 5. Run with `python -m drakula`
 
-<h3 align="center">Flight Simulator Game</h3>
- <p align="center">
-    <a href="" rel="noopener">
-   <img width=325px height=220px 
-    src="https://classroomclipart.com/image/content7/64941/thumb.gif" alt="Project logo"> 
-    </a>
-</p>
+## Game Loop
 
-<div align="center">
+![](loop.png)
 
-[![Status](https://img.shields.io/badge/status-active-success.svg)]()
-[![GitHub Issues](https://img.shields.io/github/issues/kylelobo/The-Documentation-Compendium.svg)](    )
-[![GitHub Pull Requests](https://img.shields.io/github/issues-pr/kylelobo/The-Documentation-Compendium.svg)](   )
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](/LICENSE)
+## Introduction
 
-</div>
+This document is meant for internal reference and public display. It contains information about both the requirements
+to the product, and a listing of specific design decisions taken in the making of the game.
 
----
+* [Vision](#vision)
+  * [Inspiration](#inspiration)
+  * [Theme](#theme)
+  * [Goals](#goals)
+  * [User Skills](#user-skills)
+  * [Game Mechanics](#game-mechanics)
+  * [Progression and Challenge](#progression-and-challenge)
+  * [Loss and Win Conditions](#loss-and-win-conditions)
+  * [Graphic Design](#graphic-design)
+* [Functional Requirements](#functional-requirements)
+  * [Target Platforms](#target-platforms)
+  * [Configuration](#configuration)
+* [Quality Requirements](#quality-requirements)
+  * [Age Category](#age-category)
+  * [Legal](#legal)
 
-# ✈️ Flight Simulator Game
+## Vision
 
-## 📝 Table of Contents
+Count Dracula is a powerful vampire lord on a mission to destroy the human race. He has began wreaking havoc all around the world. The player will attempt to bring the might Count down, by trapping the airports and catching the vampire to end the chaos once and for all.
 
-- [Introduction](#introduction) 
-- [Vision](#vision)
-- [Functional Requirements](#functional)
-- [Quality Requirements](#quality)
-- [Built Using](#built)
-- [Authors](#authors)
-## Introduction <a name = "introduction"></a>
+### Inspiration
 
-### 🎯 Purpose of this Document
-The following document describes the development requirements for a flight simulator game. The main thought is the player after playing this game not only be satisfied with this true entertainment but also could learn some general sustainable development knowledge from it. <p>The main purpose of this document is to give a general overview of the game development process, and a reference guide for the developer, designer, project manager, tester, etc.</p>
+The conceptual idea of travelling to hunt down Dracula is taken from the boardgame Fury Of Dracula. However, to avoid plagiarism, none of the programmers involved are informed about the specific rules, mechanics or other game components.
 
-### 👥 Target Audience
-The game is designed for players who are above the 12+ age, especially suitable for students because it is strategic and educational. 
+### Theme
 
-## Vision <a name = "vision"></a>
+Like the inspiration, the game centers on the mighty Dracula going around the world.
 
-### 💡 General Idea of the Game
-The game will combine with entertainment and sustainable development together to create a unique gaming experience with players. <p>The game focuses on simulating a real-world flight scenario for the player, the player could enjoy the game while learning about resource management, strategic decision-making and sustainable development during their playing.</p>
+### Goals
 
-### 🎮 Purpose of the Game
-- **Entertainment**:<p>The game players aim to escape or catch the computer-controlled opponent. we encourage players to engage in logical thinking and strategy development to win the game.</p>
-- **Education**: <p>Players could learn some basic knowledge about sustainable development, and resource management, and make strategic decisions while they playing this fun game.</p>
+Providing entertainment is the main design goal. Akin to other session games, it should be easy to run, play a couple of games and then exit.
 
-### 🛫 Gameplay Flow
-1. **Start Game**:<p>From the game starts, the player's airplane will displayed in a random airport on the map. The player uses initial money and resources to fly to the next airport.</p>
-2. **Opponent-Computer**: <p>The computer acts as an opponent, it will control another airplane located in a different airport at the beginning of the game, and the computer will be invisible on the map during the game. But in some cases, like extra resources or spending some money, the player could know where the computer is for one time.</p>
-3. **Strategic**: <p>Both the player and the computer just available to fly to the nearest airport on the map for the next step.</p><p>Flights could be within the same continent or between two continents, on the other hand between two continents the players will spend more money for it.</p><p>After every round of flights, the previous airport will not be available for each of them to land again.</p>
-4. **Resource Management**: <p>The players need to carefully manage their limited budget and limited resources.  <p>There will be a chance for the player to collect props from each airport, but there are not always benefits, sometime, some props may even have traps or penalties, such as not being able to fly for one turn.</p><p>If the player's money or resources are not enough for the next flight they are done "GAME OVER".</p>
-5. **Winning the Game**: <p>The player wins by successfully escaping: the computer's pursuit during time limits or after several rounds of flight the left airport is not available for them to meet each other.</p><p>The player wins by successfully catching:  The player successfully catches the computer.</p><p>The player wins a bonus: after the player wins, there is a hidden bonus for them. If the player doesn't reach the red line of the carbon footprint limits, there will be a bonus for them maybe extra money or a sustainability development trophy.</p>
+### User Skills
 
-## Functional Requirements <a name = "functional"></a>
+The game is focused on testing the player's ability to strategize, handle resources, deal with hidden information and type on a keyboard.
 
-### 🛩️ User Story 1
-- **Role**: As a player
-- **Action**: I can view all the nearest airports on the map and fly to the nearest airport from my current location for one flight.
-- **Benefit**: I can move one step, and then use my genius strategy to consider both the distance and cost to make a perfect plan to escape or catch the computer.
+### Loss and Win Conditions
 
-### 🤖 User Story 2
-- **Role**: As a player
-- **Action**: I can collect one special prop at the airport I fly to.
-- **Benefit**: This allows me to gain advantages such as flying twice or more in one turn, maybe I can get some extra money or special abilities that help me win the game. 
+The player wins if they can defeat Dracula. This is done by landing on the same airport as him and initiating combat. This can happen unintentionally, if on the Count's turn he moves to the player's airport or intentionally, if the player
 
-### 💰 User Story 3
-- **Role**: As a player
-- **Action**: I have the choice to plan my next airport where I fly to with a low carbon footprint
-- **Benefit**: I can win a hidden bonus, maybe it's extra money or a sustainability development trophy.
+### Game Mechanics
 
-### 🎁 User Story 4
-- **Role**: As a player
-- **Action**: I can use the props which I collect during my flight.
-- **Benefit**: This allows me to influence the outcome of the game and increase my chances of winning by catching my opponents.
+Since the main topic is flight, the main mechanic is flying.
+The player is tasked with capturing Dracula. This is done by trapping an airport and waiting for Dracula to land in the trap.
 
-### 🎯 User Story 5
-- **Role**: As a player
-- **Action**: I can win the game by catching the opponent or successfully escaping during time limits or after several rounds of flight the left airport is not available for them to meet each other.
-- **Benefit**: So that I can win the game.
+This would be easy lest the position of the count was known. During the entire game, the actual position is never communicated explicitly.
 
-### 🏆 User Story 6
-- **Role**: As a player     
-- **Action**: I can win a bonus at the end of the game, not just win the game.
-- **Benefit**: After I win, there is a hidden bonus for me. there will be an extra money or a trophy.
+The game loop is separated into turns. On their turn, the player chooses a location to fly to and optionally installs a
+trap in the current airport.
 
-### 🗺️ User Story 7
-- **Role**: As a computer
-- **Action**: The computer will have the same rules as the player.
-- **Benefit**: To generate an equal and challenging gaming experience.
+When due to the player's or Dracula's move both end up on the same airport a battle ensues. If the airport was previously trapped, 
 
-## Quality Requirements  <a name = "quality"></a>
+### Progression and Challenge
 
-### ⚡Performance Requirements
+### Graphic Design
 
-- **Intuitive Interface**: The user interface must display the player's information, current time remaining and the player's current money. To ensure that the player understands their options.
-- **Cost and Distance Clarity**: The map must show the nearest airport, the cost to fly there and the carbon footprint to help players make quick decisions.
-- **Stable Gameplay**: It must be ensured that not crash during gameplay. The game should have a progress save feature to save the player's current progress.
-- **Error Handling**: The game should be able to show a prompt to warn the player if they try to make an action that does not follow the game’s rules (e.g., the selected airport is not the nearest airport).
-- **Cross-Platform Compatibility**: The game should be compatible with Windows, macOS, and Linux, and should support playing with a keyboard.
-## ⛏️ Built Using <a name = "built"></a>
+## Functional Requirements
 
-- [Python](https://www.python.org/) - Programming
-- [MariaDB](https://mariadb.org/) - Database
-- [   ](    ) - Framework
+As a player, I can move between airports in alignment with my understanding of the current position of the Count. This is the key element of strategy, since I can move towards or away from the Dracula depending on my preparation.
 
+As a player, I can "trap" and airport using my CURRENCY_NAME. If Dracula lands on a trapped airport, I am instantly informed about it. The Dracula can't move for PERIOD_OF_TIME, so I can go towards his airport and catch him.
 
-## ✍️ Authors <a name = "authors"></a>
+As Dracula, my movement is guided by logic and rules. I can not cross a flightway if I already crossed it and I have other options. So if, say, I am at Lisbon and it has a flight to 
 
-- 
+As Dracula, I destroy cities in my way. When I land on an airport, a timer of CITY_DESTROY_TIME starts. When the timer is elapsed, the city is erased off the map. However, if the player lands on a city that is about to be destroyed, it is saved and the player is informed how long ago I was here.
 
+The player can save and restore their progress to pick up a game later.
 
+### Target Platforms
+
+It is imperative that the game can run on `Linux` and `Windows 10/11` devices.
+
+The recommended system requirements are as follows:
+* 64 or 32-bit processor and an operating system.
+* Windows 10 (64 or 32-bit), Windows 11, Linux (6.1.X)
+* AMD FX-4300 (4 * 3800) or equivalent / Intel Core i3-3240 (2 * 3400) or equivalent
+* 2 GB RAM
+* Radeon HD 7750 (1024 VRAM) or equivalent / GeForce GT640 (2048 VRAM) or equivalent
+* 2 GB of storage space
+
+While minor improvements to adapt the code for other platforms can be done, they are not a priority.
+
+The target Python version is 3.9, with all the subsequent Python3.X versions following as per Python's major
+version compatibility policy.
+
+All the dependencies are listed in the [`requirements.txt`](./requirements.txt) and should run as per their own compatibility policy.
+
+The product also requires an active and running and accessible instance of MariaDB. The credentials, as well as the
+port and the host should be configured following the [Configuration](#configuration) section.
+
+### Configuration
+
+Configuration is done via environmental variables. They can be both fetched from and environment and a `.env` file.
+For more examples see [`example.env`](./example.env).
+
+## Quality Requirements
+
+### Age Category
+
+The game should be appropriate for players of age 12 and more. As a guideline, the [PEGI 12](https://pegi.info/what-do-the-labels-mean) rating is used.
+
+> Video games that show violence of a slightly more graphic nature towards fantasy characters or non-realistic violence towards human-like characters would fall in this age category. Sexual innuendo or sexual posturing can be present, while any bad language in this category must be mild.
+
+In practice, this requirement is not difficult to satisfy. Since conceptually the game does not rely on violence or blood,
+no additional effort was needed to satisfy the criteria above.
+
+### Legal
+
+All of the assets used in game must be distributed under a public domain license by a third party or produced in house
+following the licensing requirements of the active license (see [`LICENSE.txt`](./LICENSE.txt)).

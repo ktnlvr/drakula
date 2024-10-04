@@ -1,25 +1,33 @@
 import dotenv
 import pygame
 from numpy.random import choice
+from logging import basicConfig as init_basic_logging
 
+from .debug import is_debug_layer_enabled, DEBUG_LAYER_STRESSTEST
+from .logging import logger
 from .db import create_database_facade
 from .character import Character, CharacterInputResult
 from .dracula import DraculaBrain
-from .game import MapScene
+from .game import MapScene, GameOverScene, GameOverKind
 from .renderer import Renderer
 from .scene import Scene
-from .state import GameState
+from .state import GameState, disperse_airports_inplace, AirportStatus
+
+AIRPORT_DISPERSION_STEPS = 32
 
 
 def main(*args, **kwargs):
-    pygame.init()
     game = create_database_facade()
 
     airports = list()
     for continent in game._continents:
         airports.extend(game.fetch_random_airports(4, continent))
 
-    state = GameState(airports)
+    logger.info("Dispersing airports...")
+    for _ in range(AIRPORT_DISPERSION_STEPS):
+        disperse_airports_inplace(airports, 1 / AIRPORT_DISPERSION_STEPS)
+    logger.info("Airport dispersion done!")
+
 
     renderer = Renderer((1280, 644))
 
@@ -27,81 +35,68 @@ def main(*args, **kwargs):
     icon = pygame.image.load("vampire.png")
     pygame.display.set_icon(icon)
 
-    character = Character(8)
-    dracula = DraculaBrain()
+    character = Character(0)
+    state = GameState(airports, character.current_location)
     scene: Scene = MapScene(state, character)
 
+    brain = DraculaBrain()
+
     running = True
-    game_over = False
-    result = None
     while running:
         renderer.begin()
 
-        scene = scene.next_scene
         scene.render(renderer)
 
-        #just for testing
-        dracula_location = state.dracula_location
-        dracula_icao = state.airports[dracula_location].ident
-        renderer.display_dracula_location(dracula_icao)
+        moves = brain.list_moves(state, state.dracula_location)
 
-        renderer.display_destroyed_airports(state.destroyed_airports)
-        idx = state.get_index(character.input_text)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if result := character.handle_input(event, state, scene):
+                if result == CharacterInputResult.Moved:
+                    if state.dracula_location == character.current_location:
+                        scene = GameOverScene(GameOverKind.WIN)
+                        continue
 
-        if game_over:
-            renderer.display_result(result)
-            renderer.begin()
+                    state.add_timer_for_traps(character)
 
-            scene.render(renderer)
-            renderer.display_result(result)
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-                elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_y:
-                        game_over = False
-                        break
-                    elif event.key == pygame.K_n or event.key == pygame.K_q:
-                        running = False
-
-        if not game_over:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-                    break
-
-                character_input = character.handle_input(event, state)
-                if character_input == CharacterInputResult.Moved:
-
-                    if idx == dracula_location:
-                        result = "Win"
-                        game_over = True
-                        break
-
-                    state.add_timer_for_traps()
-
-                    dracula_next_move = choice(
-                        [x for _, x in dracula.list_moves(state, state.dracula_location)],
-                        1,
-                        p=[p for p, _ in dracula.list_moves(state, state.dracula_location)]
+                    # TODO: make this less confusing
+                    state.states[state.dracula_location].status = AirportStatus.DESTROYED
+                    state.dracula_location = choice(
+                        [x for _, x in moves], 1, p=[p for p, _ in moves]
                     )[0]
 
-                    if dracula_next_move != state.dracula_location:
-                        state.dracula_location = dracula_next_move
-                        state.dracula_trail.append(state.dracula_location)
-                        state.destroyed_airports.add(dracula_icao)
-
-                if state.destroyed_airports_count / len(state.airports) >= 0.5:
-                    result = "Lose"
-                    game_over = True
-                    break
+                    if state.dracula_location == character.current_location:
+                        scene = GameOverScene(GameOverKind.LOSS)
+                        continue
+            if renderer.handle_event(event):
+                continue
+            if scene.handle_event(event):
+                continue
 
         renderer.end()
 
     pygame.quit()
 
 
+def stresstest_main(n):
+    for i in range(n):
+        pygame.init()
+        pygame.event.post(pygame.event.Event(pygame.QUIT))
+        main()
+        print(f"Stresstest {i}: {round(i / N, 2)}")
+    print("Done! 100%")
+
+
 if __name__ == "__main__":
+    # set up environment
     dotenv.load_dotenv()
+    pygame.init()
+    init_basic_logging()
+
+    if is_debug_layer_enabled(DEBUG_LAYER_STRESSTEST):
+        N = 2 ** 8
+        stresstest_main(N)
+        exit()
+
     main()

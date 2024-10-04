@@ -4,7 +4,6 @@ from typing import Tuple, Optional
 import moderngl
 import numpy as np
 import pygame
-
 from .utils import load_shader
 from .character import CharacterInputResult
 
@@ -18,7 +17,7 @@ def should_wrap_coordinate(a: float, b: float, span: float) -> bool:
 
 
 PYGAME_MODE_FLAGS = (
-        pygame.OPENGL | pygame.RESIZABLE | pygame.HWSURFACE | pygame.DOUBLEBUF
+    pygame.OPENGL | pygame.RESIZABLE | pygame.HWSURFACE | pygame.DOUBLEBUF
 )
 
 
@@ -81,13 +80,14 @@ class Renderer:
         now = datetime.now()
         year, month, day = now.year, now.month, now.day
         seconds_since_midnight = (
-                now - now.replace(hour=0, minute=0, second=0, microsecond=0)
+            now - now.replace(hour=0, minute=0, second=0, microsecond=0)
         ).total_seconds()
-        display = get_screen_size() * 0.9
+
+        screen_size = self.size
 
         mouse_pos = pygame.mouse.get_pos()
         mouse_buttons = pygame.mouse.get_pressed()
-        self.set_uniform("iResolution", [*display, 1.0])
+        self.set_uniform("iResolution", [*screen_size, 1.0])
         self.set_uniform("iTime", self.time)
         self.set_uniform("iTimeDelta", self.delta_time)
         self.set_uniform("iFrame", self.frame_count)
@@ -95,7 +95,7 @@ class Renderer:
             "iMouse",
             (
                 mouse_pos[0],
-                display[1] - mouse_pos[1],
+                screen_size[1] - mouse_pos[1],
                 mouse_buttons[0],
                 mouse_buttons[2],
             ),
@@ -107,7 +107,7 @@ class Renderer:
             self.program[name].value = value
 
     def draw_line(
-            self, color: pygame.Color, begin: Coordinate, end: Coordinate, width: float = 0
+        self, color: pygame.Color, begin: Coordinate, end: Coordinate, width: float = 0
     ):
         pygame.draw.line(
             self.surface,
@@ -118,12 +118,12 @@ class Renderer:
         )
 
     def draw_line_wrapping(
-            self,
-            color: pygame.Color,
-            begin: Coordinate,
-            end: Coordinate,
-            width: float = 0,
-            color_if_wrap: Optional[pygame.Color] = None,
+        self,
+        color: pygame.Color,
+        begin: Coordinate,
+        end: Coordinate,
+        width: float = 0,
+        color_if_wrap: Optional[pygame.Color] = None,
     ):
         a, b = begin, end
         if b[0] < a[0]:
@@ -181,6 +181,10 @@ class Renderer:
         pygame.draw.rect(box_surface, (255, 215, 0), border_rect, width=1, border_radius=20)
         self.surface.blit(box_surface, (box_x, box_y))
 
+    def font(self, size) -> pygame.font.Font:
+        size = size / get_screen_size()[0]
+        return pygame.font.Font(None, round(2 * size * self.minimal_scalar))
+
     def end(self):
         self.screen_texture.write(self.surface.get_view("1"))
         self.screen_texture.use(0)
@@ -197,15 +201,11 @@ class Renderer:
 
         :return: True if the event was consumed, False otherwise
         """
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_1:
-            self.fullscreen = not self.fullscreen
-
-            flags = PYGAME_MODE_FLAGS
-            if self.fullscreen:
-                flags |= pygame.FULLSCREEN
-            self.fullscreen = pygame.display.set_mode(get_screen_size(), flags)
-            return True
-
+        if event.type == pygame.VIDEORESIZE:
+            screen_size = event.size
+            self.screen = pygame.display.set_mode(screen_size, PYGAME_MODE_FLAGS)
+            self.surface = pygame.Surface(screen_size, flags=pygame.SRCALPHA)
+            self.screen_texture = self.ctx.texture(screen_size, 4)
         return False
 
     @property

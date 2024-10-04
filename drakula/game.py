@@ -77,18 +77,7 @@ class MapScene(Scene):
         )
 
     def scroll_world_map(self, renderer: Renderer):
-        """world_map = pygame.transform.scale(self.world_map_image.copy(), renderer.size)
-
-        self.horizontal_scroll_px %= renderer.size[0]
-        renderer.surface.blit(world_map, (self.horizontal_scroll_px, 0))
-        if self.horizontal_scroll_px > 0:
-            renderer.surface.blit(
-                world_map, (self.horizontal_scroll_px - renderer.size[0], 0)
-            )
-        if self.horizontal_scroll_px < 0:
-            renderer.surface.blit(
-                world_map, (self.horizontal_scroll_px + renderer.size[0], 0)
-            )"""
+        renderer.horizontal_scroll = self.normalized_horizontal_scroll(renderer)
 
     def render_airport_network(self, renderer: Renderer):
         def apply_scroll(arr):

@@ -39,7 +39,7 @@ float getDaylight(vec2 worldCoord, vec2 subsolarPoint) {
 }
 
 void main() {
-    vec2 scrolledUV = vec2(mod(uvs.x + horizontalScroll, 1.0), uvs.y);
+    vec2 scrolledUV = vec2(mod(uvs.x - horizontalScroll, 1.0), uvs.y);
 
     vec2 subsolarPoint = getSubsolarPoint();
     float daylight = getDaylight(worldPos, subsolarPoint);

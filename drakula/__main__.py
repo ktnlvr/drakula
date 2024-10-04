@@ -28,7 +28,6 @@ def main(*args, **kwargs):
         disperse_airports_inplace(airports, 1 / AIRPORT_DISPERSION_STEPS)
     logger.info("Airport dispersion done!")
 
-
     renderer = Renderer((1280, 644))
 
     pygame.display.set_caption("The Hunt for Dracula")
@@ -57,10 +56,11 @@ def main(*args, **kwargs):
                 if result == CharacterInputResult.Moved:
                     state.add_timer_for_traps(character)
                     # TODO: make this less confusing
-                    state.dracula_location = choice(
-                        [x for _, x in moves], 1, p=[p for p, _ in moves]
-                    )[0]
-                    state.dracula_trail += [state.dracula_location]
+                    if not state.dracula_on_trap():
+                        state.dracula_location = choice(
+                            [x for _, x in moves], 1, p=[p for p, _ in moves]
+                        )[0]
+                        state.dracula_trail += [state.dracula_location]
                 continue
             character.handle_input(event, state, scene)
             if renderer.handle_event(event):

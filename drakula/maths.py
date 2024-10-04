@@ -133,8 +133,8 @@ def solar_position_from_jd(jd: float) -> np.ndarray:
 
 # https://en.wikipedia.org/wiki/Spherical_coordinate_system#Cartesian_coordinates
 def x_y_to_geo_pos_deg(x, y):
-    theta = np.arccos(1 / np.sqrt(x ** 2 + y ** 2 + 1))
-    phi = np.sign(y) * np.arccos(x / np.sqrt(x ** 2 + y ** 2))
+    theta = np.arccos(1 / np.sqrt(x**2 + y**2 + 1))
+    phi = np.sign(y) * np.arccos(x / np.sqrt(x**2 + y**2))
     return np.array([theta, phi])
 
 

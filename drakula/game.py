@@ -1,4 +1,5 @@
 from idlelib.format import get_comment_header
+from sre_parse import State
 
 from .character import Character
 
@@ -52,7 +53,7 @@ class MapScene(Scene):
         self.scroll_world_map(renderer)
         self.render_airport_network(renderer)
         self.render_icao_input(renderer)
-        self.render_dracula_near_warning(renderer)
+        self.render_dracula_warning(renderer)
 
         super().render(renderer)
 
@@ -192,10 +193,13 @@ class MapScene(Scene):
         renderer.surface.blit(status_surface, status_rect)
         renderer.surface.blit(status_text, (ICAO_STATUS_PADDING, ICAO_STATUS_PADDING))
 
-    def render_dracula_near_warning(self, renderer: Renderer):
+    def render_dracula_warning(self, renderer: Renderer):
         if not self.state.is_dracula_near_trap():
             return
-        warning_message = "Your traps sense a spooky presence"
+        if self.state.dracula_on_trap():
+            warning_message = "Dracula is trapped on one of the traps"
+        else:
+            warning_message = "Your traps sense a spooky presence"
         font = renderer.font(36)
         text_surface = font.render(warning_message, True, (255, 0, 0))
         text_width, text_height = np.array([*text_surface.get_size()]) / renderer.size

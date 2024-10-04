@@ -1,3 +1,5 @@
+import logging
+
 import dotenv
 import pygame
 from numpy.random import choice
@@ -14,6 +16,7 @@ from .scene import Scene
 from .state import GameState, disperse_airports_inplace, AirportStatus
 
 AIRPORT_DISPERSION_STEPS = 32
+WORLD_DESTROYED_THRESHOLD_PERCENT = 56
 
 
 def main(*args, **kwargs):
@@ -27,7 +30,6 @@ def main(*args, **kwargs):
     for _ in range(AIRPORT_DISPERSION_STEPS):
         disperse_airports_inplace(airports, 1 / AIRPORT_DISPERSION_STEPS)
     logger.info("Airport dispersion done!")
-
 
     renderer = Renderer((1280, 644))
 
@@ -61,14 +63,27 @@ def main(*args, **kwargs):
                     state.add_timer_for_traps(character)
 
                     # TODO: make this less confusing
-                    state.states[state.dracula_location].status = AirportStatus.DESTROYED
+                    state.states[state.dracula_location].status = (
+                        AirportStatus.DESTROYED
+                    )
                     state.dracula_location = choice(
                         [x for _, x in moves], 1, p=[p for p, _ in moves]
                     )[0]
 
                     if state.dracula_location == character.current_location:
-                        scene = GameOverScene(GameOverKind.LOSS)
+                        scene = GameOverScene(GameOverKind.LOSS_CATCH)
                         continue
+
+                    destroyed_airport_count = sum(
+                        1 for s in state.states if s.status == AirportStatus.DESTROYED
+                    )
+                    airport_count = len(state.states)
+                    airports_destroyed = destroyed_airport_count / airport_count
+                    logger.info(
+                        f"{round(100 * airports_destroyed)}% of airports destroyed"
+                    )
+                    if airports_destroyed > WORLD_DESTROYED_THRESHOLD_PERCENT / 100:
+                        scene = GameOverScene(GameOverKind.LOSS_WORLD_DESTROYED)
             if renderer.handle_event(event):
                 continue
             if scene.handle_event(event):
@@ -93,6 +108,7 @@ if __name__ == "__main__":
     dotenv.load_dotenv()
     pygame.init()
     init_basic_logging()
+    logger.setLevel(logging.DEBUG)
 
     if is_debug_layer_enabled(DEBUG_LAYER_STRESSTEST):
         N = 2 ** 8

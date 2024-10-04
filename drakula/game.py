@@ -112,7 +112,7 @@ class MapScene(Scene):
         for i, idx in enumerate(connected_airports):
             airport = self.state.airports[idx]
             icao_text_surface = airport_icao_name_font.render(
-                airport.ident, True, (0, 0, 0)
+                airport.ident, True, (255, 255, 255)
             )
             airport_position_px = renderer.project(airport.screen_position)
             airport_position_px -= np.array(icao_text_surface.get_size()) / 2
@@ -128,7 +128,7 @@ class MapScene(Scene):
                 apply_scroll(airport_position_screen)
             )
 
-            renderer.surface.blit(icao_text_surface, airport_position_px)
+            renderer.text_surface.blit(icao_text_surface, airport_position_px)
 
     def render_icao_input(self, renderer: Renderer):
         font = renderer.font(18)

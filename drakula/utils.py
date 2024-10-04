@@ -8,6 +8,11 @@ U = TypeVar("U")
 
 
 def list_map(ls: list[T], f: Callable[[T], U]) -> list[U]:
+    """
+    :param ls: List of type T
+    :param f: A function which takes element of type T and returns a value of type U
+    :return: Returns list of type U
+    """
     return [f(**x) for x in ls]
 
 
@@ -19,6 +24,11 @@ def kwarg_id(argname: str):
 
 
 def pairs(ls):
+    """
+    :param ls: The list of elements to be paired
+    :return: Tuples containing adjacent elements from the list. The first element is
+    paired with the last element.
+    """
     length = len(ls)
     for i in range(length - 1):
         yield ls[i], ls[i + 1]
@@ -26,6 +36,10 @@ def pairs(ls):
 
 
 def load_shader(shader_file):
+    """
+    :param shader_file: Path to the shader file
+    :return: contents of the shaders_file
+    """
     with open(shader_file, "r") as file:
         return file.read()
 

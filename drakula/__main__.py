@@ -11,7 +11,7 @@ from .dracula import DraculaBrain
 from .game import MapScene, GameOverScene, GameOverKind
 from .renderer import Renderer
 from .scene import Scene
-from .state import GameState, disperse_airports_inplace
+from .state import GameState, disperse_airports_inplace, AirportStatus
 
 AIRPORT_DISPERSION_STEPS = 32
 
@@ -61,10 +61,10 @@ def main(*args, **kwargs):
                     state.add_timer_for_traps(character)
 
                     # TODO: make this less confusing
+                    state.states[state.dracula_location].status = AirportStatus.DESTROYED
                     state.dracula_location = choice(
                         [x for _, x in moves], 1, p=[p for p, _ in moves]
                     )[0]
-                    state.dracula_trail += [state.dracula_location]
 
                     if state.dracula_location == character.current_location:
                         scene = GameOverScene(GameOverKind.LOSS)

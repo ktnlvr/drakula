@@ -19,7 +19,8 @@ class AirportState:
     def __init__(self, airport, status):
         self.airport = airport
         self.status = status
-        self.timer = 0
+        self.trapped_timer = 0
+        self.destroyed_timer = 0
 
 
 def disperse_airports_inplace(airports: list[Airport], dt=0):
@@ -109,7 +110,6 @@ class GameState:
                 vertices.remove(v)
         assert len(vertices) != 0
         self.dracula_location = np.random.choice(list(vertices), 1)[0]
-        self.dracula_trail = [self.dracula_location]
 
     @property
     def airports(self) -> list[Airport]:
@@ -131,8 +131,8 @@ class GameState:
     def add_timer_for_traps(self, character):
         for state in self.states:
             if state.status == AirportStatus.TRAPPED:
-                state.timer = state.timer + 1
-                if state.timer > 3:
+                state.trapped_timer = state.trapped_timer + 1
+                if state.trapped_timer > 3:
                     state.status = AirportStatus.AVAILABLE
                     character.trap_count += 1
-                    state.timer = 0
+                    state.trapped_timer = 0

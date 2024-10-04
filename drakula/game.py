@@ -16,6 +16,7 @@ AIRPORT_COLOR = pygame.Color(255, 0, 0)
 AIRPORT_TRAPPED_COLOR = pygame.Color(255, 255, 0)
 AIRPORT_DESTROYED_COLOR = pygame.Color(102, 88, 73)
 AIRPORT_CONNECTION_COLOR = pygame.Color(0, 255, 0)
+AIRPORT_CUT_CONNECTION_COLOR = pygame.Color(160, 160, 160)
 ICAO_INPUT_COLOR = pygame.Color(200, 200, 200)
 ICAO_STATUS_BAR_COLOR = pygame.Color(0, 0, 0, int(255 * 0.3))
 
@@ -94,20 +95,27 @@ class MapScene(Scene):
 
         # Draw airport connections
         for i, js in self.state.graph.items():
+            connection_color = AIRPORT_CONNECTION_COLOR
+            if self.state.states[i].status != AirportStatus.AVAILABLE:
+                connection_color = AIRPORT_CUT_CONNECTION_COLOR
+
             airport = self.state.airports[i]
             a = apply_scroll(airport.screen_position)
             for j in js:
+                if self.state.states[j].status != AirportStatus.AVAILABLE:
+                    connection_color = AIRPORT_CUT_CONNECTION_COLOR
+
                 connected_airports = self.state.airports[j]
                 b = apply_scroll(connected_airports.screen_position)
 
-                renderer.draw_line_wrapping(AIRPORT_CONNECTION_COLOR, a, b)
+                renderer.draw_line_wrapping(connection_color, a, b)
 
         # Draw airport markers
         for idx, state in enumerate(self.state.states):
             p = apply_scroll(state.airport.screen_position)
             point_color = AIRPORT_COLOR
             if state.status == AirportStatus.TRAPPED:
-                point_color = AIRPORT_DESTROYED_COLOR
+                point_color = AIRPORT_TRAPPED_COLOR
             elif state.status == AirportStatus.DESTROYED:
                 point_color = AIRPORT_DESTROYED_COLOR
             renderer.draw_circle(point_color, p, ICAO_AIRPORT_SCREEN_RADIUS)
@@ -118,7 +126,8 @@ class MapScene(Scene):
                 )
 
         current_player_airport = self.state.airports[self.character.current_location]
-        connected_airports = self.state.graph[self.character.current_location]
+        connected_airports = [i for i in self.state.graph[self.character.current_location] if
+                              self.state.states[i].status == AirportStatus.AVAILABLE]
         airport_icao_name_font = renderer.font(18)
 
         for i, idx in enumerate(connected_airports):

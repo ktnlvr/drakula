@@ -158,7 +158,7 @@ class Renderer:
         self.set_uniform("horizontalScroll", self.horizontal_scroll)
         self.vao.render(moderngl.TRIANGLE_STRIP)
 
-        surface_string = pygame.image.tostring(self.surface, "RGBA")
+        surface_string = pygame.image.tobytes(self.surface, "RGBA")
         pygame_texture = self.ctx.texture(self.surface.get_size(), 4, surface_string)
         pygame_texture.use(0)
         self.pygame_vao.render(moderngl.TRIANGLE_STRIP)
@@ -167,6 +167,7 @@ class Renderer:
         self.last_time = self.current_time
         self.clock.tick(60)
         self.frame_count += 1
+        pygame_texture.release()
 
     def handle_event(self, event: pygame.event.Event) -> bool:
         """

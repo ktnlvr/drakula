@@ -4,7 +4,7 @@ from typing import Tuple, Optional
 import moderngl
 import numpy as np
 import pygame
-from .utils import load_shader
+from .utils import load_shader, load_texture
 
 Coordinate = Tuple[float, float]
 
@@ -35,18 +35,31 @@ class Renderer:
         self.surface = pygame.Surface(screen_size, flags=pygame.SRCALPHA)
         self.fullscreen = False
         self.ctx = moderngl.create_context()
-        self.screen_texture = self.ctx.texture(screen_size, 4)
+        self.ctx.enable(moderngl.BLEND)
+        self.ctx.blend_func = moderngl.SRC_ALPHA, moderngl.ONE_MINUS_SRC_ALPHA
+
+        self.day_texture = load_texture("day_map.png", screen_size)
+        self.night_texture = load_texture("night_map.jpg", screen_size)
 
         self.vertex_shader = load_shader("drakula/shaders/vertex_shader.glsl")
         self.fragment_shader = load_shader("drakula/shaders/fragment_shader.glsl")
+        self.ui_vertex_shader = load_shader("drakula/shaders/ui_vertex_shader.glsl")
+        self.ui_fragment_shader = load_shader("drakula/shaders/ui_fragment_shader.glsl")
         self.program = self.ctx.program(
             vertex_shader=self.vertex_shader, fragment_shader=self.fragment_shader
         )
+        self.pygame_program = self.ctx.program(
+            vertex_shader=self.ui_vertex_shader, fragment_shader=self.ui_fragment_shader
+        )
+
         self._screen_quad_vertices = np.array(
             [[-1.0, -1], [1.0, -1], [-1, 1], [1, 1]], dtype="f4"
         )
         self.vbo = self.ctx.buffer(self._screen_quad_vertices)
         self.vao = self.ctx.simple_vertex_array(self.program, self.vbo, "position")
+        self.pygame_vao = self.ctx.simple_vertex_array(
+            self.pygame_program, self.vbo, "position"
+        )
 
         self.clock = pygame.time.Clock()
         self.start_time = pygame.time.get_ticks()
@@ -55,12 +68,13 @@ class Renderer:
         self.time = 0
         self.delta_time = 0
         self.frame_count = 0
+        self.horizontal_scroll = 0.0
 
     def blit(self, source: pygame.Surface, at: Coordinate):
         self.surface.blit(source, self.project(at))
 
     def begin(self):
-        self.surface.fill((255, 0, 255, 255))
+        self.surface.fill((0, 0, 0, 0))
 
         self.current_time = pygame.time.get_ticks()
         self.time = (self.current_time - self.start_time) / 1000.0
@@ -90,6 +104,7 @@ class Renderer:
             ),
         )
         self.set_uniform("iDate", (year, month, day, seconds_since_midnight))
+        self.set_uniform("horizontalScroll", self.horizontal_scroll)
 
     def set_uniform(self, name, value):
         if name in self.program._members:
@@ -128,19 +143,31 @@ class Renderer:
             self.surface, color, self.project(at), radius * self.minimal_scalar
         )
 
-    def font(self, size) -> pygame.font.Font:
+    def font(self, size) -> pygame.font:
         size = size / get_screen_size()[0]
         return pygame.font.Font(None, round(2 * size * self.minimal_scalar))
 
     def end(self):
-        self.screen_texture.write(self.surface.get_view("1"))
-        self.screen_texture.use(0)
-        self.set_uniform("texture0", 0)
+        self.ctx.clear()
+        self.day_texture.use(0)
+        self.night_texture.use(1)
+        self.set_uniform("dayTexture", 0)
+        self.set_uniform("nightTexture", 1)
+        self.set_uniform("day", 276)
+        self.set_uniform("daytime", 20)
+        self.set_uniform("horizontalScroll", self.horizontal_scroll)
         self.vao.render(moderngl.TRIANGLE_STRIP)
+
+        surface_string = pygame.image.tobytes(self.surface, "RGBA")
+        pygame_texture = self.ctx.texture(self.surface.get_size(), 4, surface_string)
+        pygame_texture.use(0)
+        self.pygame_vao.render(moderngl.TRIANGLE_STRIP)
+
         pygame.display.flip()
         self.last_time = self.current_time
         self.clock.tick(60)
         self.frame_count += 1
+        pygame_texture.release()
 
     def handle_event(self, event: pygame.event.Event) -> bool:
         """
@@ -160,8 +187,7 @@ class Renderer:
             screen_size = event.size
             self.screen = pygame.display.set_mode(screen_size, PYGAME_MODE_FLAGS)
             self.surface = pygame.Surface(screen_size, flags=pygame.SRCALPHA)
-            self.screen_texture = self.ctx.texture(screen_size, 4)
-
+            self.set_uniform("iResolution", [*screen_size, 1.0])
         return False
 
     @property

@@ -38,7 +38,7 @@ class MapScene(Scene):
 
         self.state = state
 
-        self.world_map_image = pygame.image.load("map.png")
+        self.world_map_image = pygame.image.load("day_map.png")
 
         self.character = character
 
@@ -47,8 +47,9 @@ class MapScene(Scene):
         self.target_scroll_speed = 0
 
     def render(self, renderer: Renderer):
+        renderer.surface.fill((0, 0, 0, 0))
         self.update_scroll(renderer)
-        self.render_world_map(renderer)
+        self.scroll_world_map(renderer)
         self.render_airport_network(renderer)
         self.render_icao_input(renderer)
         self.render_dracula_near_warning(renderer)
@@ -63,15 +64,19 @@ class MapScene(Scene):
             return b + (a - b) * np.exp(-decay * dt)
 
         lerp_speed = MAP_SCROLL_ACCELERATION_COEFFICIENT
-        self.current_scroll_speed = exp_decay(self.current_scroll_speed, self.target_scroll_speed, lerp_speed)
+        self.current_scroll_speed = exp_decay(
+            self.current_scroll_speed, self.target_scroll_speed, lerp_speed
+        )
 
-        horizontal_scroll_px_per_s = renderer.size[0] * MAP_SCROLL_SPEED_PERCENT_PER_S / 100
-        self.horizontal_scroll_px += self.current_scroll_speed * horizontal_scroll_px_per_s * dt
+        horizontal_scroll_px_per_s = (
+            renderer.size[0] * MAP_SCROLL_SPEED_PERCENT_PER_S / 100
+        )
+        self.horizontal_scroll_px += (
+            self.current_scroll_speed * horizontal_scroll_px_per_s * dt
+        )
 
-    def render_world_map(self, renderer: Renderer):
-        world_map = pygame.transform.scale(self.world_map_image.copy(), renderer.size)
-
-        renderer.surface.blit(world_map, (0, 0))
+    def scroll_world_map(self, renderer: Renderer):
+        """world_map = pygame.transform.scale(self.world_map_image.copy(), renderer.size)
 
         self.horizontal_scroll_px %= renderer.size[0]
         renderer.surface.blit(world_map, (self.horizontal_scroll_px, 0))
@@ -82,12 +87,12 @@ class MapScene(Scene):
         if self.horizontal_scroll_px < 0:
             renderer.surface.blit(
                 world_map, (self.horizontal_scroll_px + renderer.size[0], 0)
-            )
+            )"""
 
     def render_airport_network(self, renderer: Renderer):
         def apply_scroll(arr):
             normalized_scroll = self.normalized_horizontal_scroll(renderer)
-            return np.array([(arr[0] + normalized_scroll) % 1., arr[1]])
+            return np.array([(arr[0] + normalized_scroll) % 1.0, arr[1]])
 
         # Draw airport connections
         for i, js in self.state.graph.items():
@@ -133,7 +138,9 @@ class MapScene(Scene):
             direction_normalized = direction / np.linalg.norm(direction)
 
             airport_position_screen += direction_normalized * ICAO_AIRPORT_SCREEN_RADIUS
-            airport_position_px = renderer.project(apply_scroll(airport_position_screen))
+            airport_position_px = renderer.project(
+                apply_scroll(airport_position_screen)
+            )
 
             renderer.surface.blit(icao_text_surface, airport_position_px)
 
@@ -142,9 +149,7 @@ class MapScene(Scene):
         input_rect = pygame.Rect(0, 0, 0, 0)
         input_rect.bottomleft = (
             ICAO_INPUT_PADDING,
-            renderer.size[1]
-            - ICAO_INPUT_PADDING
-            - ICAO_INPUT_HEIGHT,
+            renderer.size[1] - ICAO_INPUT_PADDING - ICAO_INPUT_HEIGHT,
         )
         input_rect.width = ICAO_INPUT_WIDTH
         input_rect.height = ICAO_INPUT_HEIGHT

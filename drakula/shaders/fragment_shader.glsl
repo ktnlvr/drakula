@@ -1,33 +1,59 @@
 #version 330
-uniform sampler2D texture0;
+
+uniform sampler2D dayTexture;
+uniform sampler2D nightTexture;
+uniform float day;
+uniform float daytime;
 uniform vec3 iResolution;
 uniform float iTime;
-uniform float iTimeDelta;
-uniform int iFrame;
-uniform vec4 iMouse;
-uniform vec4 iDate;
+uniform float horizontalScroll;
+
 in vec2 uvs;
+in vec2 worldPos;
 out vec4 fragColor;
 
-void mainImage(out vec4 fragColor, in vec2 fragCoord);
-
-void main() {
-    mainImage(fragColor, gl_FragCoord.xy);
-}
-
-//Start of shader
+const float PI = 3.14159265359;
 float Falloff = 0.3;
 
-void mainImage( out vec4 fragColor, in vec2 fragCoord )
-{
-	vec2 uv = fragCoord.xy / iResolution.xy;
-    vec4 pixel = texture(texture0, uvs);
-    pixel = pixel.bgra;
-    vec2 coord = (uv - 0.5) * (iResolution.x/iResolution.y) * 2.0;
+float deg2rad(float degrees) {
+    return degrees * PI / 180.0;
+}
+
+vec2 getSubsolarPoint() {
+    float declination = 23.45 * (2 * atan(sin(deg2rad((360.0/365.0) * (day - 81)))) / PI + 1);
+    float subsolarLong = 15.0 * (12.0 - daytime * (iTime/6));
+    return vec2(subsolarLong, declination);
+}
+
+float getDaylight(vec2 worldCoord, vec2 subsolarPoint) {
+    float lambda = deg2rad(worldCoord.x);
+    float phi = deg2rad(worldCoord.y);
+    float lambdaSs = deg2rad(subsolarPoint.x);
+    float phiSs = deg2rad(subsolarPoint.y);
+
+    float ha = lambda - lambdaSs;
+    float tanPhi = -cos(ha) / tan(phiSs);
+    float terminator = atan(tanPhi);
+
+    return smoothstep(-0.15, 0.15, phi - terminator);
+}
+
+void main() {
+    vec2 scrolledUV = vec2(mod(uvs.x + horizontalScroll, 1.0), uvs.y);
+
+    vec2 subsolarPoint = getSubsolarPoint();
+    float daylight = getDaylight(worldPos, subsolarPoint);
+
+    vec4 dayColor = texture(dayTexture, scrolledUV);
+    vec4 nightColor = texture(nightTexture, scrolledUV);
+
+    vec4 mixedColor = mix(nightColor, dayColor, daylight);
+
+    // Vignette effect
+    vec2 coord = (scrolledUV - 0.5) * (iResolution.x/iResolution.y) * 2.0;
     float rf = sqrt(dot(coord, coord)) * Falloff;
     float rf2_1 = rf * rf + 1.0;
     float e = 1.0 / (rf2_1 * rf2_1);
 
-    vec4 src = vec4(1.0,1.0,1.0,1.0);
-	fragColor = pixel * vec4(src.rgb * e, 0.5);
+    fragColor = mixedColor * vec4(e, e, e, 1.0);
 }

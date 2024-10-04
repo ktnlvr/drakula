@@ -1,5 +1,7 @@
+import pygame
+import moderngl
 from collections.abc import Callable, Generator
-from typing import TypeVar
+from typing import TypeVar, Optional, Tuple
 
 T = TypeVar("T")
 U = TypeVar("U")
@@ -15,6 +17,7 @@ def kwarg_id(argname: str):
 
     return func
 
+
 def pairs(ls):
     length = len(ls)
     for i in range(length - 1):
@@ -22,7 +25,15 @@ def pairs(ls):
     yield ls[-1], ls[0]
 
 
-# Used to load shader files
 def load_shader(shader_file):
     with open(shader_file, "r") as file:
         return file.read()
+
+
+def load_texture(texture_file, screen_size: Optional[Tuple[int, int]] = None):
+    ctx = moderngl.create_context()
+    image = pygame.image.load(texture_file).convert_alpha()
+    if screen_size:
+        image = pygame.transform.scale(image, screen_size)
+    texture = ctx.texture(image.get_size(), 4, pygame.image.tostring(image, "RGBA"))
+    return texture

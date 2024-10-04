@@ -20,7 +20,7 @@ float deg2rad(float degrees) {
 }
 
 vec2 getSubsolarPoint() {
-    float declination = 23.45 * sin(deg2rad((360.0/365.0) * (day - 81)));
+    float declination = 23.45 * (2 * atan(sin(deg2rad((360.0/365.0) * (day - 81)))) / PI + 1);
     float subsolarLong = 15.0 * (12.0 - daytime * (iTime/6));
     return vec2(subsolarLong, declination);
 }

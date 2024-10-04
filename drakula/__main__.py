@@ -3,7 +3,8 @@ import pygame
 from numpy.random import choice
 from logging import basicConfig as init_basic_logging
 
-from drakula.debug import is_debug_layer_enabled, DEBUG_LAYER_STRESSTEST
+from .debug import is_debug_layer_enabled, DEBUG_LAYER_STRESSTEST
+from .logging import logger
 from .db import create_database_facade
 from .character import Character, CharacterInputResult
 from .dracula import DraculaBrain
@@ -12,7 +13,7 @@ from .renderer import Renderer
 from .scene import Scene
 from .state import GameState, disperse_airports_inplace
 
-AIRPORT_DISPERSION_STEPS = 16
+AIRPORT_DISPERSION_STEPS = 32
 
 
 def main(*args, **kwargs):
@@ -22,10 +23,11 @@ def main(*args, **kwargs):
     for continent in game._continents:
         airports.extend(game.fetch_random_airports(4, continent))
 
+    logger.info("Dispersing airports...")
     for _ in range(AIRPORT_DISPERSION_STEPS):
-        disperse_airports_inplace(airports, 0.1)
+        disperse_airports_inplace(airports, 1 / AIRPORT_DISPERSION_STEPS)
+    logger.info("Airport dispersion done!")
 
-    state = GameState(airports)
 
     renderer = Renderer((1280, 644))
 
@@ -34,6 +36,7 @@ def main(*args, **kwargs):
     pygame.display.set_icon(icon)
 
     character = Character(0)
+    state = GameState(airports, character.current_location)
     scene: Scene = MapScene(state, character)
 
     brain = DraculaBrain()

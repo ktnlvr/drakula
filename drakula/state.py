@@ -80,7 +80,7 @@ def graph_from_airports(airports):
 
 
 class GameState:
-    def __init__(self, airports: list[Airport], timestamp: datetime.datetime = None):
+    def __init__(self, airports: list[Airport], player_start_location: int, timestamp: datetime.datetime = None):
         if timestamp is None:
             timestamp = datetime.datetime.now()
 
@@ -93,18 +93,22 @@ class GameState:
 
         self.graph = graph_from_airports(self._airports)
 
-        self._distance_cache = dict()
-        for v0 in self.graph:
-            for v1 in self.graph[v0]:
-                # to simplify the cache use symmetry of distances
-                if v1 > v0:
-                    v0, v1 = v1, v0
-                p0 = airports[v0].geo_position
-                p1 = airports[v1].geo_position
-                self._distance_cache[(v0, v1)] = distance(p0, p1).kilometers
+        # TODO: refactor me
+        min_degree_of_separation = 3
+        banned_vertices = [player_start_location]
+        for i in range(min_degree_of_separation - 1):
+            new_banned = []
+            for v in banned_vertices:
+                for neighbour in self.graph[v]:
+                    new_banned.append(neighbour)
+            banned_vertices.extend(new_banned)
 
-        # TODO: choose a better dracula location
-        self.dracula_location = 0
+        vertices = set(range(len(self._airports)))
+        for v in banned_vertices:
+            if v in vertices:
+                vertices.remove(v)
+        assert len(vertices) != 0
+        self.dracula_location = np.random.choice(list(vertices), 1)[0]
         self.dracula_trail = [self.dracula_location]
 
     @property

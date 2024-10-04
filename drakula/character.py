@@ -38,7 +38,10 @@ class Character:
                 or idx not in game_state.graph[self.current_location]
             ):
                 return CharacterInputResult.Accepted
-            if scene.state.states[idx].status != AirportStatus.AVAILABLE:
+            if (
+                scene.state.states[idx].status != AirportStatus.AVAILABLE
+                and idx != game_state.dracula_location
+            ):
                 return CharacterInputResult.Accepted
             self.current_location = idx
             return CharacterInputResult.Moved

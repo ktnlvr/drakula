@@ -87,7 +87,7 @@ if __name__ == "__main__":
     init_basic_logging()
 
     if is_debug_layer_enabled(DEBUG_LAYER_STRESSTEST):
-        N = 2 ** 8
+        N = 2**8
         stresstest_main(N)
         exit()
 

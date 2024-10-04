@@ -44,7 +44,7 @@ def main(*args, **kwargs):
     while running:
         renderer.begin()
 
-        scene = scene.next_scene
+        #scene = scene.next_scene
         scene.render(renderer)
 
         moves = brain.list_moves(state, state.dracula_location)

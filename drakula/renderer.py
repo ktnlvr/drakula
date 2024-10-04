@@ -167,7 +167,6 @@ class Renderer:
         self.last_time = self.current_time
         self.clock.tick(60)
         self.frame_count += 1
-        print(f"Frame {self.frame_count} rendered")
 
     def handle_event(self, event: pygame.event.Event) -> bool:
         """

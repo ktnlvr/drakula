@@ -1,6 +1,5 @@
 import numpy as np
-from math import atan, cos, sin, tan, tau, asin, atan2
-import datetime
+from math import atan, cos, sin, tan
 
 from scipy.spatial import Delaunay
 
@@ -19,9 +18,7 @@ def geo_pos_to_screen_pos(lat: Deg, lon: Deg) -> np.ndarray:
     """
     x = (180 + lon) / 360
     y = (90 - lat) / 180
-
     return np.array([x, y])
-
 
 # https://stackoverflow.com/questions/10473852/convert-latitude-and-longitude-to-point-in-3d-space
 def geodesic_to_3d_pos(

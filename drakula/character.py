@@ -17,6 +17,18 @@ class CharacterInputResult(Enum):
 
 
 class Character:
+    """
+    Represents the character in the game. It can interact with scene and the state according to the input
+
+    Attributes:
+    -----------
+    current_location: int
+    The current location of the player in form of index of the airport's array
+    trap_count: int
+    The current amount of traps available
+    input_text: str
+    The string which the player enters to move to the next airport. Contains ident of the airport
+    """
     def __init__(self, location: int):
         self.current_location = location
         self.trap_count = 4
@@ -25,6 +37,13 @@ class Character:
     def handle_input(
         self, event: pygame.event.Event, game_state: GameState, scene
     ) -> CharacterInputResult:
+
+        """
+        :param event: Event object from pygame containing input data
+        :param game_state: Object of class AirportState
+        :param scene: The current scene being rendered
+        :return: Result of the input handling returned as enum of CharacterInputResult
+        """
         if event.type != pygame.KEYDOWN or event.unicode == "":
             return CharacterInputResult.Ignored
 

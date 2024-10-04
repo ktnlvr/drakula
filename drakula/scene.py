@@ -7,10 +7,6 @@ from .renderer import Renderer
 
 
 class Scene(ABC):
-    @property
-    def previous_scene(self) -> Optional["Scene"]:
-        return None
-
     @abstractmethod
     def render(self, renderer: Renderer): ...
 

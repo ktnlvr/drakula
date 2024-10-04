@@ -16,7 +16,6 @@ from .scene import Scene
 from .state import GameState, disperse_airports_inplace, AirportStatus
 
 AIRPORT_DISPERSION_STEPS = 32
-WORLD_DESTROYED_THRESHOLD_PERCENT = 56
 
 
 def main(*args, **kwargs):
@@ -46,7 +45,6 @@ def main(*args, **kwargs):
     running = True
     while running:
         renderer.begin()
-
         scene.render(renderer)
 
         moves = brain.list_moves(state, state.dracula_location)
@@ -54,39 +52,30 @@ def main(*args, **kwargs):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            if scene.handle_event(event):
+                continue
             if result := character.handle_input(event, state, scene):
                 if result == CharacterInputResult.Moved:
                     if state.dracula_location == character.current_location:
-                        scene = GameOverScene(GameOverKind.WIN)
+                        scene = GameOverScene(scene, GameOverKind.WIN)
                         continue
 
                     state.add_timer_for_traps(character)
 
                     # TODO: make this less confusing
-                    state.states[state.dracula_location].status = (
-                        AirportStatus.DESTROYED
-                    )
+                    state.states[state.dracula_location].status = AirportStatus.DESTROYED
                     state.dracula_location = choice(
                         [x for _, x in moves], 1, p=[p for p, _ in moves]
                     )[0]
+                    state.states[state.dracula_location].status = AirportStatus.DESTROYED
+                    state.destroyed_airports.add(state.dracula_location)
 
                     if state.dracula_location == character.current_location:
-                        scene = GameOverScene(GameOverKind.LOSS_CATCH)
+                        scene = GameOverScene(scene, GameOverKind.LOSS)
                         continue
 
-                    destroyed_airport_count = sum(
-                        1 for s in state.states if s.status == AirportStatus.DESTROYED
-                    )
-                    airport_count = len(state.states)
-                    airports_destroyed = destroyed_airport_count / airport_count
-                    logger.info(
-                        f"{round(100 * airports_destroyed)}% of airports destroyed"
-                    )
-                    if airports_destroyed > WORLD_DESTROYED_THRESHOLD_PERCENT / 100:
-                        scene = GameOverScene(GameOverKind.LOSS_WORLD_DESTROYED)
+
             if renderer.handle_event(event):
-                continue
-            if scene.handle_event(event):
                 continue
 
         renderer.end()
@@ -108,7 +97,6 @@ if __name__ == "__main__":
     dotenv.load_dotenv()
     pygame.init()
     init_basic_logging()
-    logger.setLevel(logging.DEBUG)
 
     if is_debug_layer_enabled(DEBUG_LAYER_STRESSTEST):
         N = 2 ** 8

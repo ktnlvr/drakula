@@ -19,8 +19,7 @@ class AirportState:
     def __init__(self, airport, status):
         self.airport = airport
         self.status = status
-        self.trapped_timer = 0
-        self.destroyed_timer = 0
+        self.timer = 0
 
 
 def disperse_airports_inplace(airports: list[Airport], dt=0):
@@ -82,6 +81,9 @@ def graph_from_airports(airports):
 
 class GameState:
     def __init__(self, airports: list[Airport], player_start_location: int, timestamp: datetime.datetime = None):
+        #self.turn_counter = 0
+        #self.destroy_index = 0
+
         if timestamp is None:
             timestamp = datetime.datetime.now()
 
@@ -110,6 +112,8 @@ class GameState:
                 vertices.remove(v)
         assert len(vertices) != 0
         self.dracula_location = np.random.choice(list(vertices), 1)[0]
+        self.dracula_trail = [self.dracula_location]
+        self.destroyed_airports = set(self.dracula_trail)
 
     @property
     def airports(self) -> list[Airport]:
@@ -131,8 +135,33 @@ class GameState:
     def add_timer_for_traps(self, character):
         for state in self.states:
             if state.status == AirportStatus.TRAPPED:
-                state.trapped_timer = state.trapped_timer + 1
-                if state.trapped_timer > 3:
+                state.timer = state.timer + 1
+                if state.timer > 3:
                     state.status = AirportStatus.AVAILABLE
                     character.trap_count += 1
-                    state.trapped_timer = 0
+                    state.timer = 0
+
+    def distance_between(self, idx0: int, idx1: int) -> float:
+        if idx1 > idx0:
+            idx0, idx1 = idx1, idx0
+        pair = (idx0, idx1)
+        if pair in self._distance_cache:
+            p0 = self.airports[idx0].position
+            p1 = self.airports[idx1].position
+            self._distance_cache[pair] = distance(p0, p1).kilometers
+        return self._distance_cache[pair]
+
+    def add_hours(self, hours: int):
+        self.timestamp += datetime.timedelta(hours=hours)
+
+    @property
+    def day_percentage(self) -> float:
+        secs = self.timestamp.second + 60 * (
+                self.timestamp.minute + 60 * self.timestamp.hour
+        )
+        secs_in_day = 86400
+        return secs / secs_in_day
+
+    @property
+    def destroyed_airports_count(self):
+        return len(self.destroyed_airports)

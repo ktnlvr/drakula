@@ -30,7 +30,7 @@ class Airport(BaseModel):
     @property
     def geo_position(self) -> NDArray[(2,)]:
         """
-        Returns: A 2D numpy array containing latitude and longitude of the point
+        :returns: A 2D numpy array containing latitude and longitude of the point
         """
         return np.array([self.latitude_deg, self.longitude_deg])
 
@@ -38,7 +38,7 @@ class Airport(BaseModel):
     def screen_position(self) -> NDArray[(2,)]:
         """
         Converts geographical position of the image to position on the screen
-        Returns: A 2D numpy array containing coordinates of the geographical point on the
+        :returns: A 2D numpy array containing coordinates of the geographical point on the
         screen
         """
         return geo_pos_to_screen_pos(*self.geo_position)

@@ -34,12 +34,10 @@ class Database:
         self, query: str, model: Callable[[...], T] = dict
     ) -> list[Union[list, T]]:
         """
-        Args:
-            query: The query to be sent to the database for the result
-            model: Optional argument which is callable function to change the data type
+        :param query: The query to be sent to the database for the result
+        :param model: Optional argument which is callable function to change the data type
             from default dictionary to some other type
-
-        Returns: dict by default but may return some other data type if the function is provided
+        :returns: dict by default but may return some other data type if the function is provided
 
         """
         cursor = self.connection.cursor(dictionary=True)
@@ -60,12 +58,10 @@ class GameDatabaseFacade:
         seed: Optional[int] = None,
     ) -> list[Airport]:
         """
-        Args:
-            amount: Amount of random airports to generate defaults to 1
-            continent: Continent to generate from defaults to EU
-            seed: Seed is randomness in the result
-
-        Returns: A list of Airport object
+        :param amount: Amount of random airports to generate defaults to 1
+        :param continent: Continent to generate from defaults to EU
+        :param seed: Seed is randomness in the result
+        :returns: A list of Airport object
         """
         amount = amount or 1
         continent = continent or "EU"
@@ -85,7 +81,7 @@ class GameDatabaseFacade:
 
 def create_database_facade() -> GameDatabaseFacade:
     """
-    Returns:A object of GameDataBaseFacade
+    :returns: An object of GameDataBaseFacade
     """
     host = os.getenv("DRAKULA_HOST") or "127.0.0.1"
     port = os.getenv("DRAKULA_PORT") or 3306

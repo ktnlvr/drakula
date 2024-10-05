@@ -1,18 +1,14 @@
-from idlelib.format import get_comment_header
-from sre_parse import State
-from .character import Character
-
 import pygame
 from pygame.event import Event
 from enum import Enum
-from typing import Optional, List
+from typing import Optional, List, NoReturn
 
 import numpy as np
 
 from .renderer import Renderer
 from .scene import Scene
 from .state import GameState, AirportStatus
-
+from .character import Character
 
 MAP_SCROLL_ACCELERATION_COEFFICIENT = 21
 MAP_SCROLL_SPEED_PERCENT_PER_S = 25
@@ -295,4 +291,7 @@ class GameOverScene(Scene):
         pygame.draw.rect(box_surface, (255, 215, 0), border_rect, width=1, border_radius=20)
         renderer.surface.blit(box_surface, (box_x, box_y))
 
-
+    def handle_event(self, event: pygame.event.Event) -> NoReturn | bool:
+        if event.type == pygame.KEYDOWN:
+            exit(0)
+        return False

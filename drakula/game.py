@@ -212,8 +212,9 @@ class MapScene(Scene):
 
 # TODO: bad name, rename me?
 class GameOverKind(Enum):
-    WIN = 1
-    LOSS = 0
+    WIN = 0
+    LOSS_CAUGHT = 1
+    LOSS_DESTROYED = 2
 
 
 class GameOverScene(Scene):
@@ -258,10 +259,10 @@ class GameOverScene(Scene):
 
         if self.result_kind == GameOverKind.WIN:
             result_text = result_font.render("You Caught Dracula!", True, (0, 255, 0))
-        elif self.result_kind == GameOverKind.LOSS:
-            result_text = result_font.render("Game Over", True, (255, 0, 0))
-        else:
-            result_text = result_font.render("Game Over", True, (255, 255, 255))
+        elif self.result_kind == GameOverKind.LOSS_CAUGHT:
+            result_text = result_font.render("You got caught!", True, (255, 0, 0))
+        elif self.result_kind == GameOverKind.LOSS_DESTROYED:
+            result_text = result_font.render("The world was destroyed!", True, (255, 0, 0))
 
         result_rect = result_text.get_rect(center= (box_width // 2, box_height // 3))
         box_surface.blit(result_text, result_rect)

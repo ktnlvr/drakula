@@ -18,6 +18,8 @@ from .scene import Scene
 from .state import GameState, disperse_airports_inplace, AirportStatus
 
 AIRPORT_DISPERSION_STEPS = 1
+WINDOW_TITLE = "The Hunt for Dracula"
+WINDOW_TITLE_TEMPLATE = WINDOW_TITLE + " - {percent}% destroyed"
 
 
 def main(*args, **kwargs):
@@ -34,7 +36,7 @@ def main(*args, **kwargs):
 
     renderer = Renderer((1280, 644))
 
-    pygame.display.set_caption("The Hunt for Dracula")
+    pygame.display.set_caption(WINDOW_TITLE)
     icon = pygame.image.load("vampire.png")
     pygame.display.set_icon(icon)
 
@@ -81,7 +83,14 @@ def main(*args, **kwargs):
                     )
 
                     if state.dracula_location == character.current_location:
-                        scene = GameOverScene(scene, GameOverKind.LOSS)
+                        scene = GameOverScene(scene, GameOverKind.LOSS_CAUGHT)
+                        continue
+
+                    percent_of_world_destroyed = round(100 * len(state.destroyed_airports) / len(state.airports))
+                    pygame.display.set_caption(WINDOW_TITLE_TEMPLATE.format(percent=percent_of_world_destroyed))
+
+                    if percent_of_world_destroyed > 50:
+                        scene = GameOverScene(scene, GameOverKind.LOSS_DESTROYED)
                         continue
 
             if renderer.handle_event(event):

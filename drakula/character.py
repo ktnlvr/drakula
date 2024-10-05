@@ -32,7 +32,7 @@ class Character:
 
     def __init__(self, location: int):
         self.current_location = location
-        self.trap_count = 4
+        self.trap_count = 3
         self.input_text = ""
 
     def handle_input(

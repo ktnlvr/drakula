@@ -17,7 +17,7 @@ from .renderer import Renderer
 from .scene import Scene
 from .state import GameState, disperse_airports_inplace, AirportStatus
 
-AIRPORT_DISPERSION_STEPS = 32
+AIRPORT_DISPERSION_STEPS = 1
 
 
 def main(*args, **kwargs):
@@ -29,7 +29,7 @@ def main(*args, **kwargs):
 
     logger.info("Dispersing airports...")
     for _ in range(AIRPORT_DISPERSION_STEPS):
-        disperse_airports_inplace(airports, 1 / AIRPORT_DISPERSION_STEPS)
+        disperse_airports_inplace(airports)
     logger.info("Airport dispersion done!")
 
     renderer = Renderer((1280, 644))

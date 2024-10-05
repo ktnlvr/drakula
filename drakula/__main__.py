@@ -1,6 +1,6 @@
 import dotenv
 import pygame
-from numpy.random import choice
+from numpy.random import choice, randint
 from logging import basicConfig as init_basic_logging
 
 from .debug import (
@@ -38,7 +38,7 @@ def main(*args, **kwargs):
     icon = pygame.image.load("vampire.png")
     pygame.display.set_icon(icon)
 
-    character = Character(0)
+    character = Character(randint(len(airports)))
     state = GameState(airports, character.current_location)
     logger.info(f"Dracula starts at {state.airports[state.dracula_location].ident}!")
     scene: Scene = MapScene(state, character)

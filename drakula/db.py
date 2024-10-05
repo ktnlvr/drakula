@@ -1,5 +1,6 @@
 import os
 from typing import TypeVar, Callable, Optional, Union
+from itertools import starmap
 
 from mysql.connector import connect
 
@@ -13,8 +14,7 @@ class Database:
     """
     A class which has all the methods needed for talking to the database with the query
     provided
-    """
-    def __init__(
+    """def __init__(
         self,
         host: str = "localhost",
         port: int = 3306,
@@ -35,35 +35,35 @@ class Database:
     ) -> list[Union[list, T]]:
         """
         :param query: The query to be sent to the database for the result
-        :param model: Optional argument which is callable function to change the data type
-            from default dictionary to some other type
-        :returns: dict by default but may return some other data type if the function is provided
-
+        :param model: The function to produce the final object for each row of the query. Receives each
+        associated column as a keyword argument.
+        :returns: a list with `model` applied to each element
         """
         cursor = self.connection.cursor(dictionary=True)
         cursor.execute(query)
         return list_map(cursor.fetchall(), model)
-
 class GameDatabaseFacade:
     def __init__(self, db):
         self.db = db
         self._continents = list()
-        self.update_caches()
+        self._continents = self.db.multi_query(
+            "select distinct continent from airport", kwarg_id("continent")
+        )
 
     def fetch_random_airports(
         self,
-        amount: Optional[int] = None,
+            amount: int = 1,
         continent: Optional[str] = None,
         *,
         seed: Optional[int] = None,
     ) -> list[Airport]:
         """
-        :param amount: Amount of random airports to generate defaults to 1
-        :param continent: Continent to generate from defaults to EU
-        :param seed: Seed is randomness in the result
-        :returns: A list of Airport object
+        :param amount: Amount of random airports to generate
+        :param continent: Continent to select the airports from, All continents if None
+        :param seed: Seed for the random number generator. Calling a function with the same parameters and a fixed
+        seed produces the same result.
+        :returns: A list of Airport objects
         """
-        amount = amount or 1
         continent = continent or "EU"
         if continent and continent not in self._continents:
             raise Exception(f"Continent `{continent}` does not exist")
@@ -73,15 +73,10 @@ class GameDatabaseFacade:
         query += f" order by RAND({'' if seed is None else seed}) limit {amount}"
         return list_map(self.db.multi_query(query), Airport)
 
-    def update_caches(self):
-        self._continents = self.db.multi_query(
-            "select distinct continent from airport", kwarg_id("continent")
-        )
-
 
 def create_database_facade() -> GameDatabaseFacade:
     """
-    :returns: An object of GameDataBaseFacade
+    :returns: An established database connection based on environmental variables.
     """
     host = os.getenv("DRAKULA_HOST") or "127.0.0.1"
     port = os.getenv("DRAKULA_PORT") or 3306

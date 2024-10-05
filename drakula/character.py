@@ -42,7 +42,7 @@ class Character:
         :param event: Event object from pygame containing input data
         :param game_state: Object of class AirportState
         :param scene: The current scene being rendered
-        :return: Result of the input handling returned as enum of CharacterInputResult
+        :return: Result of handling the event
         """
         if event.type != pygame.KEYDOWN or event.unicode == "":
             return CharacterInputResult.Ignored

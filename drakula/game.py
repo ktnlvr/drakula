@@ -101,7 +101,7 @@ class MapScene(Scene):
             p = apply_scroll(state.airport.screen_position)
             point_color = AIRPORT_COLOR
             if state.status == AirportStatus.TRAPPED:
-                point_color = AIRPORT_DESTROYED_COLOR
+                point_color = AIRPORT_TRAPPED_COLOR
             elif state.status == AirportStatus.DESTROYED:
                 point_color = AIRPORT_DESTROYED_COLOR
             renderer.draw_circle(point_color, p, ICAO_AIRPORT_SCREEN_RADIUS)

@@ -4,7 +4,9 @@ from typing import Tuple, Optional
 import moderngl
 import numpy as np
 import pygame
+
 from .utils import load_shader, load_texture
+from .logging import logger
 
 Coordinate = Tuple[float, float]
 
@@ -70,6 +72,8 @@ class Renderer:
         self.frame_count = 0
         self.horizontal_scroll = 0.0
 
+        self._warned_unused_uniform_members = set()
+
     def blit(self, source: pygame.Surface, at: Coordinate):
         self.surface.blit(source, self.project(at))
 
@@ -107,8 +111,12 @@ class Renderer:
         self.set_uniform("horizontalScroll", self.horizontal_scroll)
 
     def set_uniform(self, name, value):
-        if name in self.program._members:
-            self.program[name].value = value
+        if name not in self.program._members:
+            if name not in self._warned_unused_uniform_members:
+                logger.warn(f"Setting a non-existent uniform `{name}` to `{value}`. This will not be reported again.")
+                self._warned_unused_uniform_members.add(name)
+            return
+        self.program[name].value = value
 
     def draw_line(
         self, color: pygame.Color, begin: Coordinate, end: Coordinate, width: float = 0

@@ -3,7 +3,11 @@ import pygame
 from numpy.random import choice
 from logging import basicConfig as init_basic_logging
 
-from .debug import is_debug_layer_enabled, DEBUG_LAYER_STRESSTEST
+from .debug import (
+    is_debug_layer_enabled,
+    DEBUG_LAYER_STRESSTEST,
+    DEBUG_LAYER_LOG_VERBOSE,
+)
 from .logging import logger
 from .db import create_database_facade
 from .character import Character, CharacterInputResult
@@ -36,6 +40,7 @@ def main(*args, **kwargs):
 
     character = Character(0)
     state = GameState(airports, character.current_location)
+    logger.info(f"Dracula start at {state.airports[state.dracula_location].ident}!")
     scene: Scene = MapScene(state, character)
 
     brain = DraculaBrain()
@@ -44,7 +49,6 @@ def main(*args, **kwargs):
     while running:
         renderer.begin()
 
-        #scene = scene.next_scene
         scene.render(renderer)
 
         moves = brain.list_moves(state, state.dracula_location)
@@ -60,19 +64,25 @@ def main(*args, **kwargs):
                         scene = GameOverScene(scene, GameOverKind.WIN)
                         continue
 
-                    state.add_timer_for_traps(character)
+                    state.tick_trap_timer(character)
                     # TODO: make this less confusing
                     state.states[state.dracula_location].status = AirportStatus.DESTROYED
+
+                    prev_drakula_location = state.dracula_location
+                    state.states[state.dracula_location].status = AirportStatus.DESTROYED
+                    state.destroyed_airports.add(state.dracula_location)
+
                     state.dracula_location = choice(
                         [x for _, x in moves], 1, p=[p for p, _ in moves]
                     )[0]
-                    state.states[state.dracula_location].status = AirportStatus.DESTROYED
-                    state.destroyed_airports.add(state.dracula_location)
+
+                    logger.info(
+                        f"Dracula moves from {state.airports[prev_drakula_location].ident} to {state.airports[state.dracula_location].ident}"
+                    )
 
                     if state.dracula_location == character.current_location:
                         scene = GameOverScene(scene, GameOverKind.LOSS)
                         continue
-
 
             if renderer.handle_event(event):
                 continue
@@ -96,6 +106,11 @@ if __name__ == "__main__":
     dotenv.load_dotenv()
     pygame.init()
     init_basic_logging()
+
+    if is_debug_layer_enabled(DEBUG_LAYER_LOG_VERBOSE):
+        from logging import DEBUG
+
+        logger.setLevel(DEBUG)
 
     if is_debug_layer_enabled(DEBUG_LAYER_STRESSTEST):
         N = 2**8

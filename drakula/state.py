@@ -7,6 +7,7 @@ from geopy.distance import distance
 from .maths import geodesic_to_3d_pos, delaunay_triangulate_points, x_y_to_geo_pos_deg
 from .models import Airport
 from .utils import pairs
+from .logging import logger
 
 
 class AirportStatus(Enum):
@@ -84,19 +85,14 @@ class GameState:
         self,
         airports: list[Airport],
         player_start_location: int,
-        timestamp: datetime.datetime = None,
     ):
-        if timestamp is None:
-            timestamp = datetime.datetime.now()
-
         # copy the values to prevent accidental mutations
         self.states = [
             AirportState(airport, AirportStatus.AVAILABLE) for airport in airports
         ]
-        self._airports = airports.copy()
-        self.timestamp = timestamp
+        self.airports = airports.copy()
 
-        self.graph = graph_from_airports(self._airports)
+        self.graph = graph_from_airports(self.airports)
 
         # TODO: refactor me
         min_degree_of_separation = 3
@@ -108,7 +104,7 @@ class GameState:
                     new_banned.append(neighbour)
             banned_vertices.extend(new_banned)
 
-        vertices = set(range(len(self._airports)))
+        vertices = set(range(len(self.airports)))
         for v in banned_vertices:
             if v in vertices:
                 vertices.remove(v)
@@ -117,13 +113,9 @@ class GameState:
         self.dracula_trail = [self.dracula_location]
         self.destroyed_airports = set(self.dracula_trail)
 
-    @property
-    def airports(self) -> list[Airport]:
-        return [state.airport for state in self.states]
-
     def get_index(self, icao):
-        for i in range(len(self._airports)):
-            if icao == self._airports[i].ident:
+        for i in range(len(self.airports)):
+            if icao == self.airports[i].ident:
                 return i
         return -1
 
@@ -134,9 +126,12 @@ class GameState:
         ):
             self.states[index].status = AirportStatus.TRAPPED
 
-    def add_timer_for_traps(self, character):
+    def tick_trap_timer(self, character):
         for state in self.states:
             if state.status == AirportStatus.TRAPPED:
+                logger.info(
+                    f"Ticking trap for airport {state.airport.ident}, {state.timer} turns left"
+                )
                 state.timer = state.timer + 1
                 if state.timer > 3:
                     state.status = AirportStatus.AVAILABLE
@@ -144,9 +139,7 @@ class GameState:
                     state.timer = 0
 
     def dracula_on_trap(self):
-        if self.states[self.dracula_location].status == AirportStatus.TRAPPED:
-            return True
-        return False
+        return self.states[self.dracula_location].status == AirportStatus.TRAPPED
 
     def is_dracula_near_trap(self) -> bool:
         for vert in self.graph[self.dracula_location]:

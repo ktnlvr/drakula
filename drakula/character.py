@@ -29,6 +29,7 @@ class Character:
     input_text: str
     The string which the player enters to move to the next airport. Contains ident of the airport
     """
+
     def __init__(self, location: int):
         self.current_location = location
         self.trap_count = 4
@@ -37,7 +38,6 @@ class Character:
     def handle_input(
         self, event: pygame.event.Event, game_state: GameState, scene
     ) -> CharacterInputResult:
-
         """
         :param event: Event object from pygame containing input data
         :param game_state: Object of class AirportState
@@ -56,22 +56,29 @@ class Character:
                 idx not in game_state.graph
                 or idx not in game_state.graph[self.current_location]
             ):
+                logger.info("Requested airport does not exist :c")
                 return CharacterInputResult.Accepted
             if (
                 scene.state.states[idx].status != AirportStatus.AVAILABLE
                 and idx != game_state.dracula_location
             ):
+                logger.info("Rejected attempt to go to an unavailable airport")
                 return CharacterInputResult.Accepted
+            prev_location = self.current_location
             self.current_location = idx
+            logger.info(
+                f"Character moves from {game_state.states[prev_location].airport.ident} to {game_state.states[self.current_location].airport.ident}"
+            )
             return CharacterInputResult.Moved
         elif event.key == pygame.K_BACKSPACE:
             self.input_text = self.input_text[:-1]
             return CharacterInputResult.Accepted
         elif event.key == pygame.K_SPACE:
+            logger.info(f"Waiting for a turn")
             return CharacterInputResult.Moved
         elif event.key == pygame.K_KP_ENTER:
             if self.trap_count == 0:
-                logger.info(f"Trapping rejected {self.current_location}, 0 traps left")
+                logger.warn(f"Trapping rejected {self.current_location}, 0 traps left")
             elif (
                 game_state.states[self.current_location].status != AirportStatus.TRAPPED
             ):

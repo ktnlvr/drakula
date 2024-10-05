@@ -44,6 +44,8 @@ class Character:
         :param scene: The current scene being rendered
         :return: Result of handling the event
         """
+        if len(self.input_text) > 10:
+            return CharacterInputResult.Ignored
         if event.type != pygame.KEYDOWN or event.unicode == "":
             return CharacterInputResult.Ignored
 

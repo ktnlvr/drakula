@@ -40,7 +40,7 @@ def main(*args, **kwargs):
 
     character = Character(0)
     state = GameState(airports, character.current_location)
-    logger.info(f"Dracula start at {state.airports[state.dracula_location].ident}!")
+    logger.info(f"Dracula starts at {state.airports[state.dracula_location].ident}!")
     scene: Scene = MapScene(state, character)
 
     brain = DraculaBrain()

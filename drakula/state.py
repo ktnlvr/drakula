@@ -25,6 +25,7 @@ class AirportState:
 
 def disperse_airports_inplace(airports: list[Airport], dt=0.2, iters=16):
     graph = graph_from_airports(airports)
+    forces = np.array([[0., 0.] for _ in airports])
 
     def q(idx):
         return np.log2(len(graph[idx]))
@@ -56,8 +57,13 @@ def disperse_airports_inplace(airports: list[Airport], dt=0.2, iters=16):
                 lat, lon = x_y_to_geo_pos_deg(*displacement)
 
                 # naive force, wouldn't work like that
-                a.latitude_deg += lat
-                a.longitude_deg += lon
+                forces[i][0] += lat
+                forces[i][0] += lon
+
+    for (lat, lon), airport in zip(forces, airports):
+        airport.latitude_deg += lat
+        airport.longitude_deg += lon
+        airport.correct_geo_position()
 
 
 def graph_from_airports(airports):

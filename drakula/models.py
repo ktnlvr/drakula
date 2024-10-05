@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 from numpy.typing import NDArray
 
@@ -42,3 +44,14 @@ class Airport(BaseModel):
         screen
         """
         return geo_pos_to_screen_pos(*self.geo_position)
+
+    def correct_geo_position(self):
+        """Correct latitude and longitude to be within their respective ranges"""
+        self.latitude_deg = (self.latitude_deg + 90) % 180 - 90
+
+        longitude_reduced = self.longitude_deg % 360.
+        if longitude_reduced > 180.:
+            longitude_reduced -= 360
+        elif longitude_reduced < -180:
+            longitude_reduced += 360
+        self.longitude_deg = longitude_reduced

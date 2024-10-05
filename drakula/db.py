@@ -14,7 +14,9 @@ class Database:
     """
     A class which has all the methods needed for talking to the database with the query
     provided
-    """def __init__(
+    """
+
+    def __init__(
         self,
         host: str = "localhost",
         port: int = 3306,

@@ -45,6 +45,7 @@ class Character:
         :return: Result of handling the event
         """
         if len(self.input_text) > 10:
+            self.input_text = ""
             return CharacterInputResult.Ignored
         if event.type != pygame.KEYDOWN or event.unicode == "":
             return CharacterInputResult.Ignored

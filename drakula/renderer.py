@@ -175,14 +175,6 @@ class Renderer:
 
         :return: True if the event was consumed, False otherwise
         """
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_1:
-            self.fullscreen = not self.fullscreen
-
-            flags = PYGAME_MODE_FLAGS
-            if self.fullscreen:
-                flags |= pygame.FULLSCREEN
-            self.fullscreen = pygame.display.set_mode(get_screen_size(), flags)
-            return True
         if event.type == pygame.VIDEORESIZE:
             screen_size = event.size
             self.screen = pygame.display.set_mode(screen_size, PYGAME_MODE_FLAGS)

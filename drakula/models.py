@@ -7,6 +7,9 @@ from drakula.maths import geo_pos_to_screen_pos
 
 
 class Airport(BaseModel):
+    """
+    Contains all the information related to the airport provided from the database
+    """
     id: PositiveInt
     ident: str
     type: str
@@ -24,16 +27,18 @@ class Airport(BaseModel):
     local_code: str
     home_link: str
 
-    @field_validator("elevation_ft", mode="before")
-    def check_elevation(cls, value: str) -> int:
-        if not value:
-            return 0
-        return value
-
     @property
     def geo_position(self) -> NDArray[(2,)]:
+        """
+        Returns: A 2D numpy array containing latitude and longitude of the point
+        """
         return np.array([self.latitude_deg, self.longitude_deg])
 
     @property
     def screen_position(self) -> NDArray[(2,)]:
+        """
+        Converts geographical position of the image to position on the screen
+        Returns: A 2D numpy array containing coordinates of the geographical point on the
+        screen
+        """
         return geo_pos_to_screen_pos(*self.geo_position)

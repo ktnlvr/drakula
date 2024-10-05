@@ -1,7 +1,7 @@
 import pygame
 from pygame.event import Event
 from enum import Enum
-from typing import Optional, List, NoReturn
+from typing import Optional, List, NoReturn, Union
 
 import numpy as np
 
@@ -292,7 +292,7 @@ class GameOverScene(Scene):
         pygame.draw.rect(box_surface, (255, 215, 0), border_rect, width=1, border_radius=20)
         renderer.surface.blit(box_surface, (box_x, box_y))
 
-    def handle_event(self, event: pygame.event.Event) -> NoReturn | bool:
+    def handle_event(self, event: pygame.event.Event) -> Union[NoReturn, bool]:
         if event.type == pygame.KEYDOWN:
             exit(0)
         return False

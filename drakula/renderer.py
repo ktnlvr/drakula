@@ -38,8 +38,8 @@ class Renderer:
         self.ctx.enable(moderngl.BLEND)
         self.ctx.blend_func = moderngl.SRC_ALPHA, moderngl.ONE_MINUS_SRC_ALPHA
 
-        self.day_texture = load_texture("day_map.png", screen_size)
-        self.night_texture = load_texture("night_map.jpg", screen_size)
+        self.day_texture = load_texture(self.ctx, "day_map.png", screen_size)
+        self.night_texture = load_texture(self.ctx, "night_map.jpg", screen_size)
 
         self.vertex_shader = load_shader("drakula/shaders/vertex_shader.glsl")
         self.fragment_shader = load_shader("drakula/shaders/fragment_shader.glsl")

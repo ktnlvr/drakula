@@ -44,10 +44,19 @@ def load_shader(shader_file):
         return file.read()
 
 
-def load_texture(texture_file, screen_size: Optional[Tuple[int, int]] = None):
-    ctx = moderngl.create_context()
+def load_texture(
+        ctx: moderngl.Context,
+        texture_file: str,
+        desired_size: Optional[Tuple[int, int]] = None,
+):
+    """
+    :param ctx: The moderngl (opengl) context to load the image in
+    :param texture_file: The filepath to load the texture from
+    :param desired_size: The size to scale the texture to. No up-scaling applied if `None`.
+    :return: The scaled texture
+    """
     image = pygame.image.load(texture_file).convert_alpha()
-    if screen_size:
-        image = pygame.transform.scale(image, screen_size)
+    if desired_size:
+        image = pygame.transform.scale(image, desired_size)
     texture = ctx.texture(image.get_size(), 4, pygame.image.tostring(image, "RGBA"))
     return texture

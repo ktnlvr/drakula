@@ -25,7 +25,7 @@ class DraculaBrain:
         for neighbour in neighbours:
             w = 1
             if state.states[neighbour].status == AirportStatus.DESTROYED:
-                w = 0.4
+                w = 1 / len(neighbours)
             if state.states[neighbour].status == AirportStatus.TRAPPED:
                 w = 1.2
             weighted.append(w)

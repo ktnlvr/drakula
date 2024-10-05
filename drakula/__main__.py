@@ -1,6 +1,6 @@
 import dotenv
 import pygame
-from numpy.random import choice
+from numpy.random import choice, randint
 from logging import basicConfig as init_basic_logging
 
 from .debug import (
@@ -17,7 +17,9 @@ from .renderer import Renderer
 from .scene import Scene
 from .state import GameState, disperse_airports_inplace, AirportStatus
 
-AIRPORT_DISPERSION_STEPS = 32
+AIRPORT_DISPERSION_STEPS = 1
+WINDOW_TITLE = "The Hunt for Dracula"
+WINDOW_TITLE_TEMPLATE = WINDOW_TITLE + " - {percent}% destroyed"
 
 
 def main(*args, **kwargs):
@@ -29,18 +31,18 @@ def main(*args, **kwargs):
 
     logger.info("Dispersing airports...")
     for _ in range(AIRPORT_DISPERSION_STEPS):
-        disperse_airports_inplace(airports, 1 / AIRPORT_DISPERSION_STEPS)
+        disperse_airports_inplace(airports)
     logger.info("Airport dispersion done!")
 
     renderer = Renderer((1280, 644))
 
-    pygame.display.set_caption("The Hunt for Dracula")
+    pygame.display.set_caption(WINDOW_TITLE)
     icon = pygame.image.load("vampire.png")
     pygame.display.set_icon(icon)
 
-    character = Character(0)
+    character = Character(randint(len(airports)))
     state = GameState(airports, character.current_location)
-    logger.info(f"Dracula start at {state.airports[state.dracula_location].ident}!")
+    logger.info(f"Dracula starts at {state.airports[state.dracula_location].ident}!")
     scene: Scene = MapScene(state, character)
 
     brain = DraculaBrain()
@@ -81,7 +83,14 @@ def main(*args, **kwargs):
                     )
 
                     if state.dracula_location == character.current_location:
-                        scene = GameOverScene(scene, GameOverKind.LOSS)
+                        scene = GameOverScene(scene, GameOverKind.LOSS_CAUGHT)
+                        continue
+
+                    percent_of_world_destroyed = round(100 * len(state.destroyed_airports) / len(state.airports))
+                    pygame.display.set_caption(WINDOW_TITLE_TEMPLATE.format(percent=percent_of_world_destroyed))
+
+                    if percent_of_world_destroyed > 50:
+                        scene = GameOverScene(scene, GameOverKind.LOSS_DESTROYED)
                         continue
 
             if renderer.handle_event(event):

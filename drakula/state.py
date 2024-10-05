@@ -23,39 +23,47 @@ class AirportState:
         self.timer = 0
 
 
-def disperse_airports_inplace(airports: list[Airport], dt=0):
+def disperse_airports_inplace(airports: list[Airport], dt=0.2, iters=16):
     graph = graph_from_airports(airports)
+    forces = np.array([[0., 0.] for _ in airports])
 
     def q(idx):
         return np.log2(len(graph[idx]))
 
-    k = 0.04
-    for i, a in enumerate(airports):
-        q1 = q(i)
-        for j, b in enumerate(airports):
-            if i == j:
-                continue
+    for _ in range(iters):
+        k = 0.04
+        for i, a in enumerate(airports):
+            q1 = q(i)
+            for j, b in enumerate(airports):
+                if i == j:
+                    continue
 
-            q2 = q(j)
+                q2 = q(j)
 
-            r = distance(a.geo_position, b.geo_position).miles
-            assert r != 0
+                r = distance(a.geo_position, b.geo_position).miles
+                assert r != 0
 
-            f = k * q1 * q2 / r**2
-            magnitude = (f / q1) * (dt**2 / 2)
-            if np.isclose(magnitude, 0):
-                continue
+                f = k * q1 * q2 / r ** 2
+                magnitude = (f / q1) * (dt ** 2 / 2)
+                if np.isclose(magnitude, 0):
+                    magnitude = 0.1
+                    continue
 
-            displacement = (
-                magnitude
-                * (v := a.screen_position - b.screen_position)
-                / np.linalg.norm(v)
-            )
-            lat, lon = x_y_to_geo_pos_deg(*displacement)
+                displacement = (
+                        magnitude
+                        * (v := a.screen_position - b.screen_position)
+                        / np.linalg.norm(v)
+                )
+                lat, lon = x_y_to_geo_pos_deg(*displacement)
 
-            # naive force, wouldn't work like that
-            a.latitude_deg += lat
-            a.longitude_deg += lon
+                # naive force, wouldn't work like that
+                forces[i][0] += lat
+                forces[i][0] += lon
+
+    for (lat, lon), airport in zip(forces, airports):
+        airport.latitude_deg += lat
+        airport.longitude_deg += lon
+        airport.correct_geo_position()
 
 
 def graph_from_airports(airports):

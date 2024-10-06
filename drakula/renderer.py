@@ -193,6 +193,7 @@ class Renderer:
             screen_size = event.size
             self.screen = pygame.display.set_mode(screen_size, PYGAME_MODE_FLAGS)
             self.surface = pygame.Surface(screen_size, flags=pygame.SRCALPHA)
+            self.text_surface = pygame.Surface(screen_size, flags=pygame.SRCALPHA)
             self.set_uniform("iResolution", [*screen_size, 1.0])
         return False
 

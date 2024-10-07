@@ -94,15 +94,6 @@ class Renderer:
         self.set_uniform("iTime", self.time)
         self.set_uniform("iTimeDelta", self.delta_time)
         self.set_uniform("iFrame", self.frame_count)
-        self.set_uniform(
-            "iMouse",
-            (
-                mouse_pos[0],
-                screen_size[1] - mouse_pos[1],
-                mouse_buttons[0],
-                mouse_buttons[2],
-            ),
-        )
         self.set_uniform("iDate", (year, month, day, seconds_since_midnight))
         self.set_uniform("horizontalScroll", self.horizontal_scroll)
 
@@ -156,6 +147,7 @@ class Renderer:
         self.set_uniform("day", 276)
         self.set_uniform("daytime", 20)
         self.set_uniform("horizontalScroll", self.horizontal_scroll)
+        self.pygame_program['iTime'] = self.time
         self.vao.render(moderngl.TRIANGLE_STRIP)
 
         surface_string = pygame.image.tobytes(self.surface, "RGBA")

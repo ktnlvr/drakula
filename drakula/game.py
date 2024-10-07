@@ -12,10 +12,11 @@ from .state import GameState, AirportStatus
 MAP_SCROLL_ACCELERATION_COEFFICIENT = 21
 MAP_SCROLL_SPEED_PERCENT_PER_S = 25
 
-AIRPORT_COLOR = pygame.Color(255, 0, 0)
+AIRPORT_COLOR = pygame.Color(255, 70, 70)
 AIRPORT_TRAPPED_COLOR = pygame.Color(255, 255, 0)
 AIRPORT_DESTROYED_COLOR = pygame.Color(102, 88, 73)
-AIRPORT_CONNECTION_COLOR = pygame.Color(0, 255, 0)
+AIRPORT_CONNECTION_COLOR = pygame.Color(110, 110, 110)
+AVAILABLE_AIRPORT_CONNECTION_COLOR = pygame.Color(0, 255, 0)
 ICAO_INPUT_COLOR = pygame.Color(200, 200, 200)
 ICAO_STATUS_BAR_COLOR = pygame.Color(0, 0, 0, int(255 * 0.3))
 
@@ -35,8 +36,6 @@ class MapScene(Scene):
         super().__init__()
 
         self.state = state
-
-        self.world_map_image = pygame.image.load("day_map.png")
 
         self.character = character
 
@@ -88,7 +87,13 @@ class MapScene(Scene):
                 connected_airports = self.state.airports[j]
                 b = apply_scroll(connected_airports.screen_position)
 
-                renderer.draw_line_wrapping(AIRPORT_CONNECTION_COLOR, a, b)
+
+                if i == self.character.current_location or j == self.character.current_location:
+                    connection_color = AVAILABLE_AIRPORT_CONNECTION_COLOR
+                else:
+                    connection_color = AIRPORT_CONNECTION_COLOR
+
+                renderer.draw_line_wrapping(connection_color, a, b)
 
         # Draw airport markers
         for idx, state in enumerate(self.state.states):
@@ -101,6 +106,9 @@ class MapScene(Scene):
             renderer.draw_circle(point_color, p, ICAO_AIRPORT_SCREEN_RADIUS)
 
             if idx == self.character.current_location:
+                renderer.draw_circle(
+                    (120, 120, 120), p, 0.01
+                )
                 renderer.draw_circle(
                     CURRENT_AIRPORT_HIGHLIGHT_COLOR, p, ICAO_AIRPORT_PLAYER_RADIUS
                 )

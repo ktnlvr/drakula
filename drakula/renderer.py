@@ -33,6 +33,7 @@ class Renderer:
     def __init__(self, screen_size: Optional[Tuple[int, int]] = None):
         if screen_size is None:
             screen_size = get_screen_size()
+        #Initialize renderer by creating a screen and surfaces
         self.screen = pygame.display.set_mode(screen_size, PYGAME_MODE_FLAGS)
         self.surface = pygame.Surface(screen_size, flags=pygame.SRCALPHA)
         self.text_surface = pygame.Surface(screen_size, flags=pygame.SRCALPHA)
@@ -41,15 +42,16 @@ class Renderer:
         self.ctx.enable(moderngl.BLEND)
         self.ctx.blend_func = moderngl.SRC_ALPHA, moderngl.ONE_MINUS_SRC_ALPHA
 
+        #Load day and night world maps as textures to use in the shaders and load all the shader files
         self.day_texture = load_texture(self.ctx, "day_map.png", screen_size)
         self.night_texture = load_texture(self.ctx, "night_map.jpg", screen_size)
-
         self.vertex_shader = load_shader("drakula/shaders/vertex_shader.glsl")
         self.fragment_shader = load_shader("drakula/shaders/fragment_shader.glsl")
         self.ui_vertex_shader = load_shader("drakula/shaders/ui_vertex_shader.glsl")
         self.ui_fragment_shader = load_shader("drakula/shaders/ui_fragment_shader.glsl")
         self.text_vertex_shader = load_shader("drakula/shaders/text_vertex_shader.glsl")
         self.text_fragment_shader = load_shader("drakula/shaders/text_fragment_shader.glsl")
+        #Create shader programs for each surface (background, pygame drawing surface and text surface)
         self.program = self.ctx.program(
             vertex_shader=self.vertex_shader, fragment_shader=self.fragment_shader
         )
@@ -57,10 +59,10 @@ class Renderer:
             vertex_shader=self.ui_vertex_shader, fragment_shader=self.ui_fragment_shader
         )
         self.text_program = self.ctx.program(
-            vertex_shader=self.text_vertex_shader,
-            fragment_shader=self.text_fragment_shader,
+            vertex_shader=self.text_vertex_shader, fragment_shader=self.text_fragment_shader,
         )
 
+        #Define the screen quad
         self._screen_quad_vertices = np.array(
             [[-1.0, -1], [1.0, -1], [-1, 1], [1, 1]], dtype="f4"
         )
@@ -73,7 +75,9 @@ class Renderer:
             self.text_program, self.vbo, "position"
         )
 
+        #Initialize needed variables
         self.clock = pygame.time.Clock()
+        self.clock.tick(60) #Set FPS
         self.start_time = pygame.time.get_ticks()
         self.last_time = self.start_time
         self.current_time = None
@@ -81,7 +85,6 @@ class Renderer:
         self.delta_time = 0
         self.frame_count = 0
         self.horizontal_scroll = 0.0
-
         self._warned_unused_uniform_members = set()
 
     def blit(self, source: pygame.Surface, at: Coordinate):
@@ -155,32 +158,38 @@ class Renderer:
         return pygame.font.Font(None, round(2 * size * self.minimal_scalar))
 
     def end(self):
+        #Clear the OpenGL context to start a new frame
         self.ctx.clear()
+        #Bind textures to texture units
         self.day_texture.use(0)
         self.night_texture.use(1)
+        #Set uniform values used in the shaders
         self.set_uniform("dayTexture", 0)
         self.set_uniform("nightTexture", 1)
         self.set_uniform("day", 276)
         self.set_uniform("daytime", 20)
         self.set_uniform("horizontalScroll", self.horizontal_scroll)
         self.pygame_program["iTime"] = self.time
+        #Render the background with the world map and day/night cycle
         self.vao.render(moderngl.TRIANGLE_STRIP)
 
+        #Convert Pygame surface to texture and render it (Pygame drawn lines, circles and other UI elements)
         surface_string = pygame.image.tobytes(self.surface, "RGBA")
         pygame_texture = self.ctx.texture(self.surface.get_size(), 4, surface_string)
         pygame_texture.use(0)
         self.pygame_vao.render(moderngl.TRIANGLE_STRIP)
         pygame_texture.release()
 
+        #Convert text surface to texture and render it
         text_string = pygame.image.tobytes(self.text_surface, "RGBA")
         text_texture = self.ctx.texture(self.text_surface.get_size(), 4, text_string)
         text_texture.use(0)
         self.text_vao.render(moderngl.TRIANGLE_STRIP)
         text_texture.release()
 
+        #Display the rendered frame with all layers
         pygame.display.flip()
         self.last_time = self.current_time
-        self.clock.tick(60)
         self.frame_count += 1
 
     def handle_event(self, event: pygame.event.Event) -> bool:

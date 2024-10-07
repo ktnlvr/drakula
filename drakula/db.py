@@ -53,9 +53,9 @@ class GameDatabaseFacade:
         )
 
     def fetch_random_airports(
-            self,
+        self,
             amount: int = 1,
-            continent: Optional[str] = None,
+        continent: Optional[str] = None,
         *,
         seed: Optional[int] = None,
     ) -> list[Airport]:
@@ -66,7 +66,6 @@ class GameDatabaseFacade:
         seed produces the same result.
         :returns: A list of Airport objects
         """
-        seed = seed or get_dev_seed()
         continent = continent or "EU"
         if continent and continent not in self._continents:
             raise Exception(f"Continent `{continent}` does not exist")

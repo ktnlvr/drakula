@@ -49,9 +49,7 @@ class Renderer:
         self.ui_vertex_shader = load_shader("drakula/shaders/ui_vertex_shader.glsl")
         self.ui_fragment_shader = load_shader("drakula/shaders/ui_fragment_shader.glsl")
         self.text_vertex_shader = load_shader("drakula/shaders/text_vertex_shader.glsl")
-        self.text_fragment_shader = load_shader(
-            "drakula/shaders/text_fragment_shader.glsl"
-        )
+        self.text_fragment_shader = load_shader("drakula/shaders/text_fragment_shader.glsl")
         self.program = self.ctx.program(
             vertex_shader=self.vertex_shader, fragment_shader=self.fragment_shader
         )
@@ -109,9 +107,6 @@ class Renderer:
         mouse_buttons = pygame.mouse.get_pressed()
         self.set_uniform("iResolution", [*screen_size, 1.0])
         self.set_uniform("iTime", self.time)
-        self.set_uniform("iTimeDelta", self.delta_time)
-        self.set_uniform("iFrame", self.frame_count)
-        self.set_uniform("iDate", (year, month, day, seconds_since_midnight))
         self.set_uniform("horizontalScroll", self.horizontal_scroll)
 
     def set_uniform(self, name, value):

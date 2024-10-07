@@ -29,12 +29,7 @@ vec4 Glow(vec2 uv) {
         glowColor /= totalWeight;
         glowColor *= INTENSITY;
 
-        return vec4(
-            max(originalColor.r, glowColor.r),
-            max(originalColor.g, glowColor.g),
-            max(originalColor.b, glowColor.b),
-            max(originalColor.a, glowColor.a)
-        );
+        return max(originalColor, glowColor);
     }
 
     return originalColor;

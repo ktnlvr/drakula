@@ -35,6 +35,7 @@ class Renderer:
             screen_size = get_screen_size()
         self.screen = pygame.display.set_mode(screen_size, PYGAME_MODE_FLAGS)
         self.surface = pygame.Surface(screen_size, flags=pygame.SRCALPHA)
+        self.text_surface = pygame.Surface(screen_size, flags=pygame.SRCALPHA)
         self.fullscreen = False
         self.ctx = moderngl.create_context()
         self.ctx.enable(moderngl.BLEND)
@@ -47,11 +48,19 @@ class Renderer:
         self.fragment_shader = load_shader("drakula/shaders/fragment_shader.glsl")
         self.ui_vertex_shader = load_shader("drakula/shaders/ui_vertex_shader.glsl")
         self.ui_fragment_shader = load_shader("drakula/shaders/ui_fragment_shader.glsl")
+        self.text_vertex_shader = load_shader("drakula/shaders/text_vertex_shader.glsl")
+        self.text_fragment_shader = load_shader(
+            "drakula/shaders/text_fragment_shader.glsl"
+        )
         self.program = self.ctx.program(
             vertex_shader=self.vertex_shader, fragment_shader=self.fragment_shader
         )
         self.pygame_program = self.ctx.program(
             vertex_shader=self.ui_vertex_shader, fragment_shader=self.ui_fragment_shader
+        )
+        self.text_program = self.ctx.program(
+            vertex_shader=self.text_vertex_shader,
+            fragment_shader=self.text_fragment_shader,
         )
 
         self._screen_quad_vertices = np.array(
@@ -61,6 +70,9 @@ class Renderer:
         self.vao = self.ctx.simple_vertex_array(self.program, self.vbo, "position")
         self.pygame_vao = self.ctx.simple_vertex_array(
             self.pygame_program, self.vbo, "position"
+        )
+        self.text_vao = self.ctx.simple_vertex_array(
+            self.text_program, self.vbo, "position"
         )
 
         self.clock = pygame.time.Clock()
@@ -79,6 +91,7 @@ class Renderer:
 
     def begin(self):
         self.surface.fill((0, 0, 0, 0))
+        self.text_surface.fill((0, 0, 0, 0))
 
         self.current_time = pygame.time.get_ticks()
         self.time = (self.current_time - self.start_time) / 1000.0
@@ -98,15 +111,6 @@ class Renderer:
         self.set_uniform("iTime", self.time)
         self.set_uniform("iTimeDelta", self.delta_time)
         self.set_uniform("iFrame", self.frame_count)
-        self.set_uniform(
-            "iMouse",
-            (
-                mouse_pos[0],
-                screen_size[1] - mouse_pos[1],
-                mouse_buttons[0],
-                mouse_buttons[2],
-            ),
-        )
         self.set_uniform("iDate", (year, month, day, seconds_since_midnight))
         self.set_uniform("horizontalScroll", self.horizontal_scroll)
 
@@ -164,18 +168,25 @@ class Renderer:
         self.set_uniform("day", 276)
         self.set_uniform("daytime", 20)
         self.set_uniform("horizontalScroll", self.horizontal_scroll)
+        self.pygame_program["iTime"] = self.time
         self.vao.render(moderngl.TRIANGLE_STRIP)
 
         surface_string = pygame.image.tobytes(self.surface, "RGBA")
         pygame_texture = self.ctx.texture(self.surface.get_size(), 4, surface_string)
         pygame_texture.use(0)
         self.pygame_vao.render(moderngl.TRIANGLE_STRIP)
+        pygame_texture.release()
+
+        text_string = pygame.image.tobytes(self.text_surface, "RGBA")
+        text_texture = self.ctx.texture(self.text_surface.get_size(), 4, text_string)
+        text_texture.use(0)
+        self.text_vao.render(moderngl.TRIANGLE_STRIP)
+        text_texture.release()
 
         pygame.display.flip()
         self.last_time = self.current_time
         self.clock.tick(60)
         self.frame_count += 1
-        pygame_texture.release()
 
     def handle_event(self, event: pygame.event.Event) -> bool:
         """
@@ -187,6 +198,7 @@ class Renderer:
             screen_size = event.size
             self.screen = pygame.display.set_mode(screen_size, PYGAME_MODE_FLAGS)
             self.surface = pygame.Surface(screen_size, flags=pygame.SRCALPHA)
+            self.text_surface = pygame.Surface(screen_size, flags=pygame.SRCALPHA)
             self.set_uniform("iResolution", [*screen_size, 1.0])
         return False
 

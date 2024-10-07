@@ -5,7 +5,6 @@ DEBUG_LAYER_TIMESKIP = "TIMESKIP"
 DEBUG_LAYER_STRESSTEST = "STRESSTEST"
 DEBUG_LAYER_LOG_VERBOSE = "LOG_VERBOSE"
 
-
 def debug_layers():
     return [
         layer.strip().upper()

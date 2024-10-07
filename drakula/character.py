@@ -23,7 +23,7 @@ class Character:
         self.input_text = ""
 
     def handle_input(
-            self, event: pygame.event.Event, game_state: GameState, scene
+        self, event: pygame.event.Event, game_state: GameState, scene
     ) -> CharacterInputResult:
         if event.type != pygame.KEYDOWN or event.unicode == "":
             return CharacterInputResult.Ignored
@@ -34,8 +34,8 @@ class Character:
             idx = game_state.get_index(self.input_text)
             self.input_text = ""
             if (
-                    idx not in game_state.graph
-                    or idx not in game_state.graph[self.current_location]
+                idx not in game_state.graph
+                or idx not in game_state.graph[self.current_location]
             ):
                 return CharacterInputResult.Accepted
             if scene.state.states[idx].status != AirportStatus.AVAILABLE:
@@ -49,7 +49,7 @@ class Character:
             if self.trap_count == 0:
                 logger.info(f"Trapping rejected {self.current_location}, 0 traps left")
             elif (
-                    game_state.states[self.current_location].status != AirportStatus.TRAPPED
+                game_state.states[self.current_location].status != AirportStatus.TRAPPED
             ):
                 self.trap_count -= 1
                 game_state.trap_location(self.current_location)

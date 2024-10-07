@@ -40,15 +40,15 @@ def disperse_airports_inplace(airports: list[Airport], dt=0):
             r = distance(a.geo_position, b.geo_position).miles
             assert r != 0
 
-            f = k * q1 * q2 / r ** 2
-            magnitude = (f / q1) * (dt ** 2 / 2)
+            f = k * q1 * q2 / r**2
+            magnitude = (f / q1) * (dt**2 / 2)
             if np.isclose(magnitude, 0):
                 continue
 
             displacement = (
-                    magnitude
-                    * (v := a.screen_position - b.screen_position)
-                    / np.linalg.norm(v)
+                magnitude
+                * (v := a.screen_position - b.screen_position)
+                / np.linalg.norm(v)
             )
             lat, lon = x_y_to_geo_pos_deg(*displacement)
 
@@ -80,7 +80,12 @@ def graph_from_airports(airports):
 
 
 class GameState:
-    def __init__(self, airports: list[Airport], player_start_location: int, timestamp: datetime.datetime = None):
+    def __init__(
+        self,
+        airports: list[Airport],
+        player_start_location: int,
+        timestamp: datetime.datetime = None,
+    ):
         if timestamp is None:
             timestamp = datetime.datetime.now()
 
@@ -123,8 +128,8 @@ class GameState:
 
     def trap_location(self, index):
         if (
-                self.states[index].status != AirportStatus.TRAPPED
-                and self.states[index].status != AirportStatus.DESTROYED
+            self.states[index].status != AirportStatus.TRAPPED
+            and self.states[index].status != AirportStatus.DESTROYED
         ):
             self.states[index].status = AirportStatus.TRAPPED
 

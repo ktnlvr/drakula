@@ -87,8 +87,10 @@ class MapScene(Scene):
                 connected_airports = self.state.airports[j]
                 b = apply_scroll(connected_airports.screen_position)
 
-
-                if i == self.character.current_location or j == self.character.current_location:
+                if (
+                    i == self.character.current_location
+                    or j == self.character.current_location
+                ):
                     connection_color = AVAILABLE_AIRPORT_CONNECTION_COLOR
                 else:
                     connection_color = AIRPORT_CONNECTION_COLOR
@@ -106,9 +108,7 @@ class MapScene(Scene):
             renderer.draw_circle(point_color, p, ICAO_AIRPORT_SCREEN_RADIUS)
 
             if idx == self.character.current_location:
-                renderer.draw_circle(
-                    (120, 120, 120), p, 0.01
-                )
+                renderer.draw_circle((120, 120, 120), p, 0.01)
                 renderer.draw_circle(
                     CURRENT_AIRPORT_HIGHLIGHT_COLOR, p, ICAO_AIRPORT_PLAYER_RADIUS
                 )

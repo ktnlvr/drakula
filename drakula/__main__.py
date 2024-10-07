@@ -28,7 +28,6 @@ def main(*args, **kwargs):
         disperse_airports_inplace(airports, 1 / AIRPORT_DISPERSION_STEPS)
     logger.info("Airport dispersion done!")
 
-
     renderer = Renderer((1280, 644))
 
     pygame.display.set_caption("The Hunt for Dracula")

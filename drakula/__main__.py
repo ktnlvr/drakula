@@ -17,7 +17,7 @@ from .renderer import Renderer
 from .scene import Scene
 from .state import GameState, disperse_airports_inplace, AirportStatus
 
-AIRPORT_DISPERSION_STEPS = 1
+AIRPORT_DISPERSION_STEPS = 4
 WINDOW_TITLE = "The Hunt for Dracula"
 WINDOW_TITLE_TEMPLATE = WINDOW_TITLE + " - {percent}% destroyed"
 

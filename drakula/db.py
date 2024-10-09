@@ -1,9 +1,9 @@
 import os
 from typing import TypeVar, Callable, Optional, Union
-from itertools import starmap
 
 from mysql.connector import connect
 
+from .debug import get_dev_seed
 from .models import Airport
 from .utils import list_map, kwarg_id
 

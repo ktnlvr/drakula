@@ -4,14 +4,7 @@ from .state import GameState, AirportStatus
 class DraculaBrain:
     """
     A class having the logic behind the movement of the dracula
-
-    Attributes:
-    ----------
-    visited: set
-    An object of class set containing the moves the dracula has made so far.
     """
-    def __init__(self):
-        self.visited = set()
 
     def list_moves(self, state: GameState, location: int) -> list[tuple[float, int]]:
         """

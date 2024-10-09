@@ -68,15 +68,14 @@ def main(*args, **kwargs):
 
                     state.tick_trap_timer(character)
                     # TODO: make this less confusing
-                    state.states[state.dracula_location].status = AirportStatus.DESTROYED
-
-                    prev_drakula_location = state.dracula_location
-                    state.states[state.dracula_location].status = AirportStatus.DESTROYED
-                    state.destroyed_airports.add(state.dracula_location)
-
-                    state.dracula_location = choice(
-                        [x for _, x in moves], 1, p=[p for p, _ in moves]
-                    )[0]
+                    if not state.dracula_on_trap():
+                        state.states[state.dracula_location].status = AirportStatus.DESTROYED
+                        prev_drakula_location = state.dracula_location
+                        state.states[state.dracula_location].status = AirportStatus.DESTROYED
+                        state.destroyed_airports.add(state.dracula_location)
+                        state.dracula_location = choice(
+                            [x for _, x in moves], 1, p=[p for p, _ in moves]
+                        )[0]
 
                     logger.info(
                         f"Dracula moves from {state.airports[prev_drakula_location].ident} to {state.airports[state.dracula_location].ident}"

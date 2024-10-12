@@ -77,7 +77,7 @@ class Character:
         elif event.key == pygame.K_SPACE:
             logger.info(f"Waiting for a turn")
             return CharacterInputResult.Moved
-        elif event.key == pygame.K_KP_ENTER:
+        elif event.key == pygame.K_BACKSLASH:
             if self.trap_count == 0:
                 logger.warn(f"Trapping rejected {self.current_location}, 0 traps left")
             elif (

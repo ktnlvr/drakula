@@ -77,7 +77,7 @@ class Renderer:
 
         #Initialize needed variables
         self.clock = pygame.time.Clock()
-        self.clock.tick(60) #Set FPS
+        self.clock.tick(144) #Set FPS
         self.start_time = pygame.time.get_ticks()
         self.last_time = self.start_time
         self.current_time = None

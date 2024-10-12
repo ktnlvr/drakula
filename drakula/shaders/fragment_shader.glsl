@@ -21,7 +21,7 @@ float deg2rad(float degrees) {
 
 vec2 getSubsolarPoint() {
     float declination = 23.45 * (2 * atan(sin(deg2rad((360.0/365.0) * (day - 81)))) / PI + 1);
-    float subsolarLong = 15.0 * (12.0 - daytime * (iTime/6));
+    float subsolarLong = 15.0 * (12.0 - daytime * (iTime/24));
     return vec2(subsolarLong, declination);
 }
 
@@ -40,9 +40,10 @@ float getDaylight(vec2 worldCoord, vec2 subsolarPoint) {
 
 void main() {
     vec2 scrolledUV = vec2(mod(uvs.x - horizontalScroll, 1.0), uvs.y);
+    vec2 scrolledWorld = vec2(mod(worldPos.x - horizontalScroll * 360.0, 360.0), worldPos.y);
 
     vec2 subsolarPoint = getSubsolarPoint();
-    float daylight = getDaylight(worldPos, subsolarPoint);
+    float daylight = getDaylight(scrolledWorld, subsolarPoint);
 
     vec4 dayColor = texture(dayTexture, scrolledUV);
     vec4 nightColor = texture(nightTexture, scrolledUV);

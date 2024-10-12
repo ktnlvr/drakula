@@ -16,7 +16,7 @@ MAP_SCROLL_SPEED_PERCENT_PER_S = 25
 AIRPORT_COLOR = pygame.Color(255, 70, 70)
 AIRPORT_TRAPPED_COLOR = pygame.Color(255, 255, 0)
 AIRPORT_DESTROYED_COLOR = pygame.Color(102, 88, 73)
-AIRPORT_CONNECTION_COLOR = pygame.Color(110, 110, 110)
+AIRPORT_CONNECTION_COLOR = pygame.Color(200, 200, 200)
 AVAILABLE_AIRPORT_CONNECTION_COLOR = pygame.Color(0, 255, 0)
 ICAO_INPUT_COLOR = pygame.Color(200, 200, 200)
 ICAO_STATUS_BAR_COLOR = pygame.Color(0, 0, 0, int(255 * 0.3))
@@ -29,7 +29,7 @@ ICAO_INPUT_PADDING = 5
 ICAO_STATUS_PADDING = 10
 
 ICAO_AIRPORT_SCREEN_RADIUS = 0.01
-ICAO_AIRPORT_PLAYER_RADIUS = 0.007
+ICAO_AIRPORT_PLAYER_RADIUS = 0.01
 
 
 class MapScene(Scene):
@@ -107,12 +107,13 @@ class MapScene(Scene):
                 point_color = AIRPORT_TRAPPED_COLOR
             elif state.status == AirportStatus.DESTROYED:
                 point_color = AIRPORT_DESTROYED_COLOR
-            renderer.draw_circle(point_color, p, ICAO_AIRPORT_SCREEN_RADIUS)
+            elif idx == self.character.current_location:
+                point_color = CURRENT_AIRPORT_HIGHLIGHT_COLOR
 
+            renderer.draw_circle(point_color, p, ICAO_AIRPORT_SCREEN_RADIUS)
             if idx == self.character.current_location:
-                renderer.draw_circle((120, 120, 120), p, 0.01)
                 renderer.draw_circle(
-                    CURRENT_AIRPORT_HIGHLIGHT_COLOR, p, ICAO_AIRPORT_PLAYER_RADIUS
+                    CURRENT_AIRPORT_HIGHLIGHT_COLOR, p, 0.005
                 )
 
         current_player_airport = self.state.airports[self.character.current_location]
@@ -255,7 +256,7 @@ class GameOverScene(Scene):
         self.display_result(renderer)
 
     def display_result(self, renderer: Renderer):
-        result_font = renderer.font(60)
+        result_font = renderer.font(40)
         option_font =  renderer.font(20)
 
         box_width, box_height = 700, 350
@@ -276,7 +277,7 @@ class GameOverScene(Scene):
         box_surface.blit(result_text, result_rect)
 
         title_text = option_font.render("Dracula Destroyed Airports:", True, (255, 215, 0))
-        title_rect = title_text.get_rect(midtop=(box_width // 2, result_rect.bottom + 10))
+        title_rect = title_text.get_rect(midtop=(box_width // 2, result_rect.bottom - 5))
         box_surface.blit(title_text, title_rect)
 
         if self.state and self.state.destroyed_airports:
@@ -298,7 +299,7 @@ class GameOverScene(Scene):
 
         border_rect = box_surface.get_rect()
         pygame.draw.rect(box_surface, (255, 215, 0), border_rect, width=1, border_radius=20)
-        renderer.surface.blit(box_surface, (box_x, box_y))
+        renderer.text_surface.blit(box_surface, (box_x, box_y))
 
     def handle_event(self, event: pygame.event.Event) -> Union[NoReturn, bool]:
         if event.type == pygame.KEYDOWN:

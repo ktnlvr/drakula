@@ -55,3 +55,9 @@ class Airport(BaseModel):
         elif longitude_reduced < -180:
             longitude_reduced += 360
         self.longitude_deg = longitude_reduced
+
+    @field_validator("elevation_ft", mode="before")
+    def check_elevation(cls, value: str) -> int:
+        if not value:
+            return 0
+        return value

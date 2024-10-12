@@ -190,7 +190,7 @@ class MapScene(Scene):
         renderer.surface.blit(status_text, (ICAO_STATUS_PADDING, ICAO_STATUS_PADDING))
 
     def render_dracula_warning(self, renderer: Renderer):
-        if not self.state.is_dracula_near_trap():
+        if not self.state.is_dracula_near_trap() and not self.state.dracula_on_trap():
             return
         if self.state.dracula_on_trap():
             warning_message = "Dracula is trapped on one of the traps"
